@@ -1,83 +1,60 @@
-export default async function handler(req, res) {
+// Vercel serverless function: talks to the Telegram Bot API.
+// Token comes from the panel's Settings, or from the TELEGRAM_BOT_TOKEN env var as fallback.
+
+module.exports = async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
   if (req.method !== "POST") {
-    return res.status(405).json({ ok: false, error: "POST required" });
+    return res.status(405).json({ ok: false, description: "Sirf POST allowed hai." });
   }
 
-  const {
-    botToken,
-    chatId,
-    questions,
-    delayMs = 1500,
-    protectContent = false,
-    isAnonymous = true
-  } = req.body || {};
+  const b = typeof req.body === "string" ? safeParse(req.body) : req.body || {};
+  const token = (b.token || process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  const chatId = String(b.chat_id || process.env.TELEGRAM_CHAT_ID || "").trim();
 
-  if (!botToken?.trim()) return res.status(400).json({ok:false,error:"Bot Token is required."});
-  if (!chatId?.trim()) return res.status(400).json({ok:false,error:"Group/Chat ID is required."});
-  if (!Array.isArray(questions) || !questions.length) {
-    return res.status(400).json({ok:false,error:"No quiz questions supplied."});
+  if (!/^\d+:[\w-]{20,}$/.test(token)) {
+    return res.status(400).json({ ok: false, description: "Bot Token sahi format mein nahi hai." });
   }
 
-  const delay = Math.max(500, Math.min(Number(delayMs) || 1500, 30000));
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
-  const results = [];
+  try {
+    if (b.action === "getMe") {
+      return await forward(res, token, "getMe", {});
+    }
 
-  for (let i=0; i<questions.length; i++) {
-    const q = questions[i];
-
-    if (!q || typeof q.question !== "string" ||
-        !Array.isArray(q.options) || q.options.length < 2 ||
-        q.options.length > 10 || !Number.isInteger(q.correctOption) ||
-        q.correctOption < 0 || q.correctOption >= q.options.length) {
-      results.push({index:i+1,ok:false,error:"Invalid question/options/correctOption."});
-      continue;
+    if (!chatId) return res.status(400).json({ ok: false, description: "Group ID missing hai." });
+    const opts = b.options;
+    if (!b.question || !Array.isArray(opts) || opts.length < 2 || opts.length > 10) {
+      return res.status(400).json({ ok: false, description: "Question ya options galat hain." });
+    }
+    const cid = Number(b.correct_option_id);
+    if (!Number.isInteger(cid) || cid < 0 || cid >= opts.length) {
+      return res.status(400).json({ ok: false, description: "correct_option_id galat hai." });
     }
 
     const payload = {
       chat_id: chatId,
-      question: q.question.slice(0,300),
-      options: q.options.map(x => String(x).slice(0,100)),
+      question: String(b.question).slice(0, 300),
+      options: opts.map((o) => String(o).slice(0, 100)),
       type: "quiz",
-      correct_option_id: q.correctOption,
-      is_anonymous: Boolean(isAnonymous),
-      protect_content: Boolean(protectContent)
+      correct_option_id: cid,
+      is_anonymous: b.is_anonymous === true
     };
+    if (b.explanation) payload.explanation = String(b.explanation).slice(0, 200);
 
-    if (q.explanation) payload.explanation = String(q.explanation).slice(0,200);
-
-    try {
-      const tg = await fetch(`https://api.telegram.org/bot${encodeURIComponent(botToken)}/sendPoll`, {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify(payload)
-      });
-      const data = await tg.json();
-
-      if (!data.ok) {
-        results.push({
-          index:i+1, ok:false,
-          error:data.description || "Telegram API error",
-          retry_after:data.parameters?.retry_after || null
-        });
-        if (data.parameters?.retry_after) {
-          await sleep(Math.min(Number(data.parameters.retry_after)*1000,60000));
-        }
-      } else {
-        results.push({index:i+1,ok:true,message_id:data.result?.message_id ?? null});
-      }
-    } catch (e) {
-      results.push({index:i+1,ok:false,error:e?.message || "Network error"});
-    }
-
-    if (i < questions.length-1) await sleep(delay);
+    return await forward(res, token, "sendPoll", payload);
+  } catch (e) {
+    return res.status(502).json({ ok: false, description: "Telegram tak nahi pahunch paye: " + e.message });
   }
+};
 
-  const sent = results.filter(x=>x.ok).length;
-  return res.status(200).json({
-    ok: sent === questions.length,
-    total: questions.length,
-    sent,
-    failed: questions.length-sent,
-    results
+async function forward(res, token, method, payload) {
+  const r = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
   });
+  const data = await r.json();
+  // Telegram's own response (including retry_after on 429) is passed through to the panel.
+  return res.status(200).json(data);
 }
+
+function safeParse(s) { try { return JSON.parse(s); } catch (e) { return {}; } }
