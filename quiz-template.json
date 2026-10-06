@@ -1,0 +1,16 @@
+{
+  "title": "My Telegram Quiz",
+  "questions": [
+    {
+      "question": "Example question?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correctOption": 0,
+      "explanation": "Optional explanation"
+    }
+  ]
+}
