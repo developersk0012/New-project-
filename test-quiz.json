@@ -1,16 +1,10 @@
 {
-  "title": "Telegram Test Quiz",
   "questions": [
     {
-      "question": "भारत में उत्पन्न प्रत्यावर्ती विद्युत धारा की आवृत्ति कितनी है?",
-      "options": [
-        "40 Hz",
-        "50 Hz",
-        "60 Hz",
-        "100 Hz"
-      ],
-      "correctOption": 1,
-      "explanation": "Test question for panel testing."
+      "question": "भारत की राजधानी क्या है?",
+      "options": ["मुंबई", "नई दिल्ली", "कोलकाता", "पटना"],
+      "correct_answer": "नई दिल्ली",
+      "explanation": "भारत की राजधानी नई दिल्ली है।"
     }
   ]
 }

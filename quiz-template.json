@@ -1,16 +1,15 @@
 {
-  "title": "My Telegram Quiz",
   "questions": [
     {
-      "question": "आपका प्रश्न यहाँ लिखें?",
-      "options": [
-        "Option A",
-        "Option B",
-        "Option C",
-        "Option D"
-      ],
-      "correctOption": 0,
-      "explanation": "Optional"
+      "question": "Question 1 yahan likhein (max 300 characters)",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correct_answer": "Option B",
+      "explanation": "Optional: sahi answer ka explanation (max 200 characters)"
+    },
+    {
+      "question": "Question 2 yahan likhein",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correct_answer": "Option A"
     }
   ]
 }

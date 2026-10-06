@@ -1,39 +1,206 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Seema • Quiz Panel</title><link rel="stylesheet" href="styles.css">
+<title>Quiz Panel — Telegram Quiz Publisher</title>
+<link rel="stylesheet" href="assets/style.css">
 </head>
-<body><div class="bg"></div><main class="wrap">
-<header class="hero"><div><div class="eyebrow">QUIZ PUBLISHER</div><h1>Seema Panel</h1><p>Upload → Validate → Preview → Publish</p></div>
-<div id="status" class="status">Ready</div></header>
+<body>
+<nav><b>Quiz Panel</b><a href="index.html">Home</a><a href="error.html">JSON Check</a></nav>
+<main class="wrap">
 
-<section class="grid">
-<article class="card"><h2>⚙️ Settings</h2>
-<label>Telegram Bot Token<input id="botToken" type="password" autocomplete="off" placeholder="BotFather token"></label>
-<label>Group / Chat ID<input id="chatId" value="-1004460252437"></label>
-<div class="two">
-<label>Delay (ms)<input id="delayMs" type="number" min="500" max="30000" value="1500"></label>
-<label>Anonymous<select id="isAnonymous"><option value="true">Yes</option><option value="false">No</option></select></label>
-</div>
-<label class="check"><input id="protectContent" type="checkbox"> Protect content</label>
-<button class="ghost" id="saveSettings">Save settings</button>
-</article>
+  <section class="card" aria-labelledby="sh">
+    <h2 id="sh">Settings</h2>
+    <div class="row">
+      <div><label for="token">Telegram Bot Token</label>
+        <input type="password" id="token" autocomplete="off" placeholder="123456:ABC-DEF...">
+        <p class="hint">@BotFather se milta hai. Sirf is browser mein save hota hai.</p></div>
+      <div><label for="chat">Telegram Group ID</label>
+        <input type="text" id="chat" placeholder="-1001234567890 ya @groupname">
+        <p class="hint">Bot group mein admin hona chahiye.</p></div>
+      <div><label for="delay">Quiz ke beech delay (seconds)</label>
+        <input type="number" id="delay" min="1" max="3600" value="5">
+        <p class="hint">Telegram limit ke liye 3+ seconds rakhein.</p></div>
+      <div><label for="start">Question number se shuru karein</label>
+        <input type="number" id="start" min="1" value="1">
+        <p class="hint">Beech mein ruka ho to yahan se continue karein.</p></div>
+    </div>
+    <label class="chk"><input type="checkbox" id="anon"> Anonymous quiz</label>
+    <label class="chk"><input type="checkbox" id="expl" checked> Explanation bhejein (agar JSON mein hai)</label>
+    <label class="chk"><input type="checkbox" id="shuffle"> Options shuffle karein</label>
+    <button class="alt" id="saveBtn">Settings save karein</button>
+    <button class="alt" id="testBtn">Bot connection check karein</button>
+    <div id="setMsg" role="status"></div>
+  </section>
 
-<article class="card"><h2>📄 JSON Upload</h2>
-<input id="jsonFile" type="file" accept=".json,application/json">
-<div id="drop" class="drop">JSON file यहाँ drop करें</div>
-<div id="fileMeta" class="fileMeta">No file loaded</div>
-<div class="stats"><div><b id="total">0</b><span>Total</span></div><div><b id="valid">0</b><span>Valid</span></div><div><b id="invalid">0</b><span>Invalid</span></div></div>
-<div class="actions"><button class="secondary" id="downloadTemplate">Download Template</button><button class="primary" id="start" disabled>▶ Start Publishing</button></div>
-<button class="danger" id="stop" disabled>■ Stop request</button>
-<a class="errorLink" href="error.html">🛠 Open Error Checker</a>
-</article></section>
+  <section class="card" aria-labelledby="uh">
+    <h2 id="uh">Questions JSON</h2>
+    <input type="file" id="file" accept=".json,application/json" aria-label="JSON file chunein">
+    <p class="hint">Format ke liye <a href="quiz-template.json" download>quiz-template.json</a>. <button class="alt" id="loadTest" style="padding:4px 10px;margin-left:6px">Test quiz load karein</button></p>
+    <div id="upMsg" role="status"></div>
+  </section>
 
-<section class="card"><div class="sectionHead"><div><h2>🔎 Preview</h2><p class="muted">हर question का correct option green में दिखेगा।</p></div><input id="search" placeholder="Search question..."></div>
-<div id="preview" class="preview empty">JSON upload करें।</div></section>
+  <section class="card" id="prevCard" hidden>
+    <h2 id="prevTitle">Preview</h2>
+    <div id="preview"></div>
+  </section>
 
-<section class="card"><div class="sectionHead"><div><h2>📊 Publish Log</h2><p class="muted">Telegram response यहाँ दिखेगा।</p></div><button class="ghost" id="clearLog">Clear</button></div>
-<div id="log" class="log"></div></section>
-<footer><a href="index.html">← Home</a> · <a href="error.html">Error Checker</a></footer>
-</main><script src="app.js"></script></body></html>
+  <section class="card" id="pubCard" hidden>
+    <h2>Publish</h2>
+    <progress id="bar" value="0" max="1"></progress>
+    <p class="hint" id="status">Taiyar.</p>
+    <button id="go">Start Publishing</button>
+    <button class="alt" id="stop" disabled>Roken</button>
+    <div id="log" style="margin-top:12px" aria-live="polite"></div>
+  </section>
+</main>
+
+<script src="assets/validator.js"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var KEY = "tqp_settings", questions = [], running = false, stopFlag = false;
+
+/* ---------- Settings ---------- */
+function loadSettings() {
+  try {
+    var s = JSON.parse(localStorage.getItem(KEY) || "{}");
+    if (s.token) $("token").value = s.token;
+    if (s.chat) $("chat").value = s.chat;
+    if (s.delay) $("delay").value = s.delay;
+    $("anon").checked = !!s.anon;
+    if (s.expl === false) $("expl").checked = false;
+    $("shuffle").checked = !!s.shuffle;
+  } catch (e) {}
+}
+function settings() {
+  return {
+    token: $("token").value.trim(), chat: $("chat").value.trim(),
+    delay: Math.max(1, Number($("delay").value) || 5),
+    anon: $("anon").checked, expl: $("expl").checked, shuffle: $("shuffle").checked,
+    start: Math.max(1, parseInt($("start").value, 10) || 1)
+  };
+}
+function note(el, text, cls) { el.className = "msg " + (cls || ""); el.textContent = text; }
+
+$("saveBtn").onclick = function () {
+  var s = settings(); delete s.start;
+  try { localStorage.setItem(KEY, JSON.stringify(s)); note($("setMsg"), "Settings save ho gayi.", "ok"); }
+  catch (e) { note($("setMsg"), "Browser storage band hai, settings save nahi ho saki.", "bad"); }
+};
+
+function call(body) {
+  return fetch("/api/send-quiz", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    .then(function (r) { return r.json().catch(function () { return { ok: false, description: "Server se galat jawab aaya (HTTP " + r.status + ")." }; }); });
+}
+
+$("testBtn").onclick = function () {
+  var s = settings();
+  note($("setMsg"), "Check ho raha hai...");
+  call({ action: "getMe", token: s.token, chat_id: s.chat }).then(function (r) {
+    if (r.ok) note($("setMsg"), "Bot connected: @" + r.result.username, "ok");
+    else note($("setMsg"), "Connection fail: " + (r.description || "unknown error"), "bad");
+  }).catch(function (e) { note($("setMsg"), "Network error: " + e.message, "bad"); });
+};
+
+/* ---------- Upload + preview ---------- */
+function handleText(name, text) {
+  var res = QuizValidator.validate(text);
+  if (!res.ok) {
+    try { sessionStorage.setItem("tqp_errors", JSON.stringify({ file: name, errors: res.errors })); } catch (e) {}
+    location.href = "error.html";
+    return;
+  }
+  questions = res.questions;
+  note($("upMsg"), name + ": " + questions.length + " questions sahi hain.", "ok");
+  renderPreview(name);
+}
+
+function renderPreview(name) {
+  var box = $("preview"); box.innerHTML = "";
+  questions.forEach(function (q, i) {
+    var d = document.createElement("div"); d.className = "q"; d.id = "q" + i;
+    var p = document.createElement("p"); p.textContent = (i + 1) + ". " + q.question;
+    var ol = document.createElement("ol"); ol.type = "A";
+    q.options.forEach(function (o) {
+      var li = document.createElement("li"); li.textContent = o;
+      if (o === q.correct_answer) li.className = "right";
+      ol.appendChild(li);
+    });
+    d.appendChild(p); d.appendChild(ol);
+    if (q.explanation) { var e = document.createElement("div"); e.className = "hint"; e.textContent = "Explanation: " + q.explanation; d.appendChild(e); }
+    box.appendChild(d);
+  });
+  $("prevTitle").textContent = "Preview — " + questions.length + " questions (hara = sahi answer)";
+  $("prevCard").hidden = false; $("pubCard").hidden = false;
+  $("bar").max = questions.length; $("bar").value = 0;
+  $("status").textContent = "Taiyar.";
+}
+
+$("file").addEventListener("change", function (ev) {
+  var f = ev.target.files[0]; if (!f) return;
+  var r = new FileReader();
+  r.onload = function () { handleText(f.name, r.result); };
+  r.readAsText(f, "utf-8");
+});
+$("loadTest").onclick = function () {
+  fetch("test-quiz.json").then(function (r) { return r.text(); }).then(function (t) { handleText("test-quiz.json", t); })
+    .catch(function () { note($("upMsg"), "test-quiz.json load nahi hua.", "bad"); });
+};
+
+/* ---------- Publishing ---------- */
+function log(t) { var l = $("log"); l.textContent += t + "\n"; l.scrollTop = l.scrollHeight; }
+function wait(sec) { return new Promise(function (r) { setTimeout(r, sec * 1000); }); }
+function shuffled(q) {
+  var o = q.options.slice();
+  for (var i = o.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = o[i]; o[i] = o[j]; o[j] = t; }
+  return o;
+}
+
+async function sendOne(q, s) {
+  var opts = s.shuffle ? shuffled(q) : q.options;
+  var body = {
+    action: "sendQuiz", token: s.token, chat_id: s.chat,
+    question: q.question, options: opts,
+    correct_option_id: opts.indexOf(q.correct_answer),
+    is_anonymous: s.anon
+  };
+  if (s.expl && q.explanation) body.explanation = q.explanation;
+  for (var tries = 0; tries < 3; tries++) {
+    var r = await call(body);
+    if (r.ok) return { ok: true };
+    var ra = r.parameters && r.parameters.retry_after;
+    if (ra && tries < 2) { log("Telegram ne " + ra + "s rukne ko kaha, wait kar rahe hain..."); await wait(ra + 1); continue; }
+    return { ok: false, error: r.description || "unknown error" };
+  }
+}
+
+$("go").onclick = async function () {
+  var s = settings();
+  if (!s.token || !s.chat) { note($("setMsg"), "Bot Token aur Group ID bharein.", "bad"); window.scrollTo(0, 0); return; }
+  if (!questions.length) return;
+  running = true; stopFlag = false; $("go").disabled = true; $("stop").disabled = false; $("log").textContent = "";
+  var from = Math.min(s.start, questions.length) - 1, sent = 0;
+  for (var i = from; i < questions.length; i++) {
+    if (stopFlag) { log("Roka gaya. Dobara shuru karne ke liye question number " + (i + 1) + " rakhein."); break; }
+    $("status").textContent = "Bhej rahe hain: " + (i + 1) + " / " + questions.length;
+    $("q" + i).className = "q now";
+    var r = await sendOne(questions[i], s);
+    if (r.ok) { $("q" + i).className = "q sent"; sent++; log("Question " + (i + 1) + " bhej diya."); }
+    else {
+      $("q" + i).className = "q fail";
+      log("Question " + (i + 1) + " fail: " + r.error);
+      log("Ruk gaye. Fix karke question number " + (i + 1) + " se dobara shuru karein.");
+      $("start").value = i + 1; break;
+    }
+    $("bar").value = i + 1;
+    if (i < questions.length - 1 && !stopFlag) await wait(s.delay);
+  }
+  $("status").textContent = "Poora hua. " + sent + " quiz bheje gaye.";
+  running = false; $("go").disabled = false; $("stop").disabled = true;
+};
+$("stop").onclick = function () { stopFlag = true; $("stop").disabled = true; };
+
+loadSettings();
+</script>
+</body>
+</html>

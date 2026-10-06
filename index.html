@@ -1,22 +1,31 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Telegram Quiz Publisher</title><link rel="stylesheet" href="styles.css">
+<title>Telegram Quiz Publisher</title>
+<link rel="stylesheet" href="assets/style.css">
 </head>
-<body><div class="bg"></div><main class="wrap home">
-<section class="card homeCard">
-<div class="logo">📝</div><div class="eyebrow">TELEGRAM QUIZ PUBLISHER</div>
-<h1>Quiz Publisher</h1>
-<p>JSON upload करें, questions verify करें और Telegram group में quiz polls publish करें।</p>
-<div class="homeActions">
-<a class="primary" href="seema.html">🚀 Open Quiz Panel</a>
-<a class="secondary" href="test-quiz.json" download>🧪 Test JSON</a>
-</div>
-<div class="featureGrid">
-<div class="feature"><b>📄 JSON</b><span>Clean JSON parser + validation</span></div>
-<div class="feature"><b>🔎 Error Check</b><span>Detailed error page और logs</span></div>
-<div class="feature"><b>📊 Telegram</b><span>Quiz poll publishing</span></div>
-</div>
-<p class="tiny">Telegram Bot Token source code में hard-code नहीं है।</p>
-</section></main></body></html>
+<body>
+<nav><b>Telegram Quiz Publisher</b><a href="seema.html">Quiz Panel</a><a href="error.html">JSON Check</a></nav>
+<main class="wrap">
+  <h1>JSON se seedha Telegram group mein Quiz Poll</h1>
+  <p>Questions ki JSON file upload karein, preview dekhein, aur ek click mein sab questions group mein ek-ek karke quiz ke roop mein bhej dein.</p>
+  <p><a class="btn" href="seema.html">Quiz Panel kholein</a></p>
+
+  <div class="links">
+    <div class="card"><h2>1. Format dekhein</h2><p class="hint"><a href="quiz-template.json" download>quiz-template.json</a> mein apne questions bharein.</p></div>
+    <div class="card"><h2>2. Pehle test karein</h2><p class="hint"><a href="test-quiz.json" download>test-quiz.json</a> mein sirf 1 question hai. Panel mein "Test quiz load karein" dabayein.</p></div>
+    <div class="card"><h2>3. Galti dhoondhein</h2><p class="hint">JSON mein problem ho to <a href="error.html">error.html</a> exact line-wise error batata hai.</p></div>
+  </div>
+
+  <div class="card">
+    <h2>Shuru karne se pehle</h2>
+    <ol>
+      <li>Telegram par @BotFather se bot banayein aur Bot Token copy karein.</li>
+      <li>Bot ko apne group mein add karein aur admin banayein.</li>
+      <li>Panel ke Settings mein Bot Token aur Group ID bharein.</li>
+    </ol>
+  </div>
+</main>
+</body>
+</html>
