@@ -1,100 +1,39 @@
 <!doctype html>
 <html lang="hi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Seema • Telegram Quiz Publisher</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Seema • Quiz Panel</title><link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  <div class="bg"></div>
-  <main class="wrap">
-    <header class="hero">
-      <div>
-        <div class="eyebrow">TELEGRAM QUIZ PUBLISHER</div>
-        <h1>Seema Panel</h1>
-        <p>JSON upload करो → preview/validation → Start Publishing.</p>
-      </div>
-      <div class="status" id="status">Ready</div>
-    </header>
+<body><div class="bg"></div><main class="wrap">
+<header class="hero"><div><div class="eyebrow">QUIZ PUBLISHER</div><h1>Seema Panel</h1><p>Upload → Validate → Preview → Publish</p></div>
+<div id="status" class="status">Ready</div></header>
 
-    <section class="grid">
-      <article class="card">
-        <h2>⚙️ Settings</h2>
-        <p class="muted">सारी बदलने वाली requirements यहीं भरें। Token browser में save नहीं किया जाएगा।</p>
+<section class="grid">
+<article class="card"><h2>⚙️ Settings</h2>
+<label>Telegram Bot Token<input id="botToken" type="password" autocomplete="off" placeholder="BotFather token"></label>
+<label>Group / Chat ID<input id="chatId" value="-1004460252437"></label>
+<div class="two">
+<label>Delay (ms)<input id="delayMs" type="number" min="500" max="30000" value="1500"></label>
+<label>Anonymous<select id="isAnonymous"><option value="true">Yes</option><option value="false">No</option></select></label>
+</div>
+<label class="check"><input id="protectContent" type="checkbox"> Protect content</label>
+<button class="ghost" id="saveSettings">Save settings</button>
+</article>
 
-        <label>Telegram Bot Token
-          <input id="botToken" type="password" placeholder="123456:ABC...">
-        </label>
+<article class="card"><h2>📄 JSON Upload</h2>
+<input id="jsonFile" type="file" accept=".json,application/json">
+<div id="drop" class="drop">JSON file यहाँ drop करें</div>
+<div id="fileMeta" class="fileMeta">No file loaded</div>
+<div class="stats"><div><b id="total">0</b><span>Total</span></div><div><b id="valid">0</b><span>Valid</span></div><div><b id="invalid">0</b><span>Invalid</span></div></div>
+<div class="actions"><button class="secondary" id="downloadTemplate">Download Template</button><button class="primary" id="start" disabled>▶ Start Publishing</button></div>
+<button class="danger" id="stop" disabled>■ Stop request</button>
+<a class="errorLink" href="error.html">🛠 Open Error Checker</a>
+</article></section>
 
-        <label>Group / Chat ID
-          <input id="chatId" value="-1004460252437" placeholder="-100...">
-        </label>
+<section class="card"><div class="sectionHead"><div><h2>🔎 Preview</h2><p class="muted">हर question का correct option green में दिखेगा।</p></div><input id="search" placeholder="Search question..."></div>
+<div id="preview" class="preview empty">JSON upload करें।</div></section>
 
-        <div class="two">
-          <label>Delay (ms)
-            <input id="delayMs" type="number" min="500" max="30000" value="1500">
-          </label>
-          <label>Quiz anonymity
-            <select id="isAnonymous">
-              <option value="true">Anonymous</option>
-              <option value="false">Visible votes</option>
-            </select>
-          </label>
-        </div>
-
-        <label class="check"><input id="protectContent" type="checkbox"> Protect sent content</label>
-
-        <button class="ghost" id="saveSettings">Save non-secret settings</button>
-        <p class="tiny">Bot token केवल send request के दौरान server को भेजा जाता है; उसे localStorage में नहीं रखा जाता।</p>
-      </article>
-
-      <article class="card">
-        <h2>📄 Quiz JSON</h2>
-        <input id="jsonFile" type="file" accept=".json,application/json">
-        <div class="drop" id="drop">JSON file यहाँ drop करें</div>
-
-        <div class="fileMeta" id="fileMeta">No file loaded</div>
-        <div class="stats">
-          <div><b id="total">0</b><span>Total</span></div>
-          <div><b id="valid">0</b><span>Valid</span></div>
-          <div><b id="invalid">0</b><span>Invalid</span></div>
-        </div>
-
-        <div class="actions">
-          <button class="secondary" id="downloadTemplate">Download JSON Template</button>
-          <button class="primary" id="start" disabled>▶ Start Publishing</button>
-        </div>
-        <button class="danger" id="stop" disabled>■ Stop after current request</button>
-      </article>
-    </section>
-
-    <section class="card">
-      <div class="sectionHead">
-        <div>
-          <h2>🔎 Preview</h2>
-          <p class="muted">Publish करने से पहले questions और correct option check करें।</p>
-        </div>
-        <input id="search" placeholder="Search question...">
-      </div>
-      <div id="preview" class="preview empty">JSON upload करने के बाद preview यहाँ आएगा।</div>
-    </section>
-
-    <section class="card">
-      <div class="sectionHead">
-        <div>
-          <h2>📊 Publish Log</h2>
-          <p class="muted">हर question का Telegram result.</p>
-        </div>
-        <button class="ghost" id="clearLog">Clear</button>
-      </div>
-      <div id="log" class="log"></div>
-    </section>
-
-    <footer>
-      Telegram Bot API • JSON based • No Firebase required
-    </footer>
-  </main>
-  <script src="app.js"></script>
-</body>
-</html>
+<section class="card"><div class="sectionHead"><div><h2>📊 Publish Log</h2><p class="muted">Telegram response यहाँ दिखेगा।</p></div><button class="ghost" id="clearLog">Clear</button></div>
+<div id="log" class="log"></div></section>
+<footer><a href="index.html">← Home</a> · <a href="error.html">Error Checker</a></footer>
+</main><script src="app.js"></script></body></html>

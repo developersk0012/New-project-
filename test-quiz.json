@@ -1,0 +1,16 @@
+{
+  "title": "Telegram Test Quiz",
+  "questions": [
+    {
+      "question": "भारत में उत्पन्न प्रत्यावर्ती विद्युत धारा की आवृत्ति कितनी है?",
+      "options": [
+        "40 Hz",
+        "50 Hz",
+        "60 Hz",
+        "100 Hz"
+      ],
+      "correctOption": 1,
+      "explanation": "Test question for panel testing."
+    }
+  ]
+}

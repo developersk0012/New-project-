@@ -2,7 +2,7 @@
   "title": "My Telegram Quiz",
   "questions": [
     {
-      "question": "Example question?",
+      "question": "आपका प्रश्न यहाँ लिखें?",
       "options": [
         "Option A",
         "Option B",
@@ -10,7 +10,7 @@
         "Option D"
       ],
       "correctOption": 0,
-      "explanation": "Optional explanation"
+      "explanation": "Optional"
     }
   ]
 }

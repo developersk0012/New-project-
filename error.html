@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="hi">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Error Checker</title><link rel="stylesheet" href="styles.css"></head>
+<body><div class="bg"></div><main class="wrap">
+<header class="hero"><div><div class="eyebrow">DEBUG / ERROR CENTER</div><h1>Error Checker</h1><p>JSON parser और browser errors की जानकारी यहाँ मिलेगी।</p></div>
+<a class="secondary" href="seema.html">← Panel</a></header>
+<section class="card">
+<h2>🧪 JSON Test</h2><p class="muted">नीचे JSON paste करके exact parser error check करें।</p>
+<textarea id="jsonText" rows="16" placeholder='{"title":"Test","questions":[{"question":"...","options":["A","B"],"correctOption":0}]}'></textarea>
+<div class="actions"><button class="primary" id="check">✓ Check JSON</button><button class="secondary" id="loadTest">Load Test Question</button></div>
+<pre id="result" class="debugBox">Waiting...</pre>
+</section>
+<section class="card"><h2>📋 Runtime Errors</h2><pre id="runtime" class="debugBox">No runtime errors recorded.</pre><button class="ghost" id="clear">Clear errors</button></section>
+<footer><a href="index.html">Home</a></footer>
+</main>
+<script>
+function showResult(ok,msg,data){
+ const el=document.getElementById("result");
+ el.textContent=(ok?"✅ VALID\\n":"❌ INVALID\\n")+msg+(data?"\\n\\n"+JSON.stringify(data,null,2):"");
+ el.className="debugBox "+(ok?"ok":"bad");
+}
+function parseClean(raw){
+ let s=String(raw||"").replace(/^\\uFEFF/,"").trim();
+ if(s.startsWith("```")){
+   s=s.replace(/^```(?:json)?\\s*/i,"").replace(/\\s*```$/,"").trim();
+ }
+ try{return {data:JSON.parse(s),text:s};}
+ catch(e){
+   const m=e.message.match(/position (\\d+)/i);
+   if(m){
+     const pos=Number(m[1]), start=Math.max(0,pos-40), end=Math.min(s.length,pos+40);
+     return {error:e,context:s.slice(start,end),position:pos};
+   }
+   return {error:e,context:s.slice(0,200)};
+ }
+}
+document.getElementById("check").onclick=()=>{
+ const raw=document.getElementById("jsonText").value;
+ const r=parseClean(raw);
+ if(r.error) showResult(false,r.error.message,{position:r.position,context:r.context});
+ else showResult(true,"JSON.parse successful.",r.data);
+};
+document.getElementById("loadTest").onclick=async()=>{
+ const r=await fetch("test-quiz.json?x="+Date.now()); const text=await r.text();
+ document.getElementById("jsonText").value=text; document.getElementById("check").click();
+};
+document.getElementById("clear").onclick=()=>{localStorage.removeItem("quizRuntimeErrors");document.getElementById("runtime").textContent="No runtime errors recorded.";};
+try{
+ const x=JSON.parse(localStorage.getItem("quizRuntimeErrors")||"[]");
+ if(x.length) document.getElementById("runtime").textContent=x.map((e,i)=>`#${i+1} ${e.time}\\n${e.message}\\n${e.stack||""}`).join("\\n\\n");
+}catch{}
+</script></body></html>

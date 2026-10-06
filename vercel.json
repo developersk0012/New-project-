@@ -1,25 +1,4 @@
 {
   "version": 2,
-  "cleanUrls": true,
-  "routes": [
-    {
-      "src": "/api/send-quiz",
-      "dest": "/api/send-quiz.js"
-    },
-    {
-      "src": "/seema",
-      "dest": "/seema.html"
-    },
-    {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
+  "cleanUrls": true
 }

@@ -1,22 +1,16 @@
-# Telegram Quiz Publisher — Vercel Ready
+# Telegram Quiz Publisher V3
 
-## Vercel
-इस project को Vercel में deploy करें। Root URL पर `index.html` खुलेगा।
+Vercel root:
+- `/` Home
+- `/seema.html` Quiz Panel
+- `/error.html` Error Checker
+- `/test-quiz.json` One-question testing JSON
+- `/api/send-quiz` Telegram serverless function
 
-Routes:
-- `/` → Home
-- `/seema` → Quiz Publisher
-- `/seema.html` → Quiz Publisher
-- `/api/send-quiz` → Telegram serverless API
+Deploy the CONTENTS of this folder as the Vercel project root.
+Do not put the files inside another nested folder.
 
-Vercel को `vercel.json` और `api/send-quiz.js` serverless endpoint दिया गया है।
+For a test, open Seema Panel and upload `test-quiz.json`.
+The test JSON contains exactly one complete question with 4 options and correctOption.
 
-## Local
-```bash
-npm install
-npm start
-```
-
-## Security
-Bot token source code में hard-code नहीं है। Panel से runtime पर दिया जाता है।
-यदि कोई bot token public/share हो चुका है तो उसे BotFather से regenerate करें।
+Bot token is entered at runtime and is not stored in source code.
