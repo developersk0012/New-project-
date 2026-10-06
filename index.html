@@ -1,55 +1,415 @@
-<!doctype html>
-<html lang="hi">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Telegram Quiz Publisher</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Website Control</title>
+
   <style>
-    .home{min-height:70vh;display:grid;place-items:center}
-    .homeCard{max-width:760px;width:100%;text-align:center;padding:42px}
-    .logo{width:78px;height:78px;margin:0 auto 18px;border-radius:24px;display:grid;place-items:center;font-size:36px;background:#123b5f;border:1px solid #3974a4;box-shadow:0 14px 40px #0005}
-    .homeCard h1{font-size:42px;margin:8px 0}
-    .homeCard p{color:#9eb2c9;line-height:1.6}
-    .homeActions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:28px}
-    .featureGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:25px;text-align:left}
-    .feature{background:#071421;border:1px solid #1e3b57;border-radius:14px;padding:15px}
-    .feature b{display:block;margin-bottom:5px}
-    .feature span{font-size:12px;color:#7891a9}
-    @media(max-width:700px){.homeCard h1{font-size:32px}.homeActions,.featureGrid{grid-template-columns:1fr}}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #050b18;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .box {
+      width: 100%;
+      max-width: 430px;
+      background: #0d1628;
+      border: 1px solid #263653;
+      border-radius: 22px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: 26px;
+    }
+
+    .sub {
+      text-align: center;
+      color: #9ba9c0;
+      margin-bottom: 25px;
+      font-size: 14px;
+    }
+
+    .status {
+      padding: 18px;
+      border-radius: 15px;
+      text-align: center;
+      margin-bottom: 20px;
+      background: #182238;
+    }
+
+    .status span {
+      display: block;
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    .open {
+      color: #31e981;
+    }
+
+    .closed {
+      color: #ff5757;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 90px;
+      resize: vertical;
+      background: #080f1e;
+      border: 1px solid #2b3b59;
+      color: white;
+      border-radius: 12px;
+      padding: 13px;
+      outline: none;
+      margin-bottom: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      border: 0;
+      border-radius: 13px;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    #closeBtn {
+      background: #d93636;
+    }
+
+    #openBtn {
+      background: #168c55;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    #msg {
+      text-align: center;
+      margin-top: 18px;
+      min-height: 20px;
+      font-size: 14px;
+    }
+
+    .info {
+      margin-top: 20px;
+      padding: 12px;
+      background: #111c31;
+      border-radius: 12px;
+      color: #94a3ba;
+      font-size: 12px;
+      line-height: 1.5;
+    }
   </style>
 </head>
+
 <body>
-  <div class="bg"></div>
-  <main class="wrap home">
-    <section class="card homeCard">
-      <div class="logo">📝</div>
-      <div class="eyebrow">SK • TELEGRAM TOOL</div>
-      <h1>Telegram Quiz Publisher</h1>
-      <p>
-        JSON quiz upload करें, questions preview करें और Telegram group में
-        quiz polls publish करें।
-      </p>
 
-      <div class="homeActions">
-        <a class="primary" href="seema.html" style="text-decoration:none;display:grid;place-items:center">
-          🚀 Open Quiz Panel
-        </a>
-        <a class="secondary" href="quiz-template.json" download style="text-decoration:none;display:grid;place-items:center">
-          📄 JSON Template
-        </a>
-      </div>
+<div class="box">
 
-      <div class="featureGrid">
-        <div class="feature"><b>📄 JSON Upload</b><span>Questions एक JSON file से load करें।</span></div>
-        <div class="feature"><b>🔎 Preview</b><span>Publish से पहले questions check करें।</span></div>
-        <div class="feature"><b>📊 Publish Log</b><span>Sent/failed results देखें।</span></div>
-      </div>
+  <h1>🌐 Website Control</h1>
+  <div class="sub">Central control for all connected websites</div>
 
-      <p class="tiny" style="margin-top:25px">
-        Telegram sending के लिए backend/server चलना जरूरी है।
-      </p>
-    </section>
-  </main>
+  <div class="status">
+    Current Status
+    <span id="statusText">Checking...</span>
+  </div>
+
+  <textarea
+    id="closeMessage"
+    placeholder="Website close hone par users ko kya message dikhana hai?"
+  >Website is temporarily closed. Please try again later.</textarea>
+
+  <button id="closeBtn" onclick="closeAll()">
+    🔴 CLOSE ALL WEBSITES
+  </button>
+
+  <button id="openBtn" onclick="openAll()">
+    🟢 OPEN ALL WEBSITES
+  </button>
+
+  <div id="msg"></div>
+
+  <div class="info">
+    Ye switch Firebase ke
+    <b>globalSettings/websiteClosed</b>
+    path ko control karta hai.
+    Connected websites ko isi flag ko check karna hoga.
+  </div>
+
+</div>
+
+<script type="module">
+
+  import {
+    initializeApp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+  import {
+    getDatabase,
+    ref,
+    get,
+    set
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+
+  /* ================================
+     FIREBASE CONFIG
+     ================================ */
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA_placeholder_study_with_abhi",
+    authDomain: "ewhe-1827a.firebaseapp.com",
+    databaseURL: "https://ewhe-1827a-default-rtdb.firebaseio.com",
+    projectId: "ewhe-1827a",
+    storageBucket: "ewhe-1827a.appspot.com",
+    messagingSenderId: "89502930545",
+    appId: "1:89502930545:web:studywithabhi"
+  };
+
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const settingsRef = ref(db, "globalSettings");
+
+  const statusText = document.getElementById("statusText");
+  const messageBox = document.getElementById("closeMessage");
+  const msg = document.getElementById("msg");
+
+  const closeBtn = document.getElementById("closeBtn");
+  const openBtn = document.getElementById("openBtn");
+
+
+  /* ================================
+     LOAD CURRENT STATUS
+     ================================ */
+
+  async function loadStatus() {
+
+    try {
+
+      const snapshot = await get(settingsRef);
+
+      if (!snapshot.exists()) {
+        await set(settingsRef, {
+          websiteClosed: false,
+          message: "Website is temporarily closed.",
+          updatedAt: Date.now()
+        });
+
+        showOpen();
+        return;
+      }
+
+      const data = snapshot.val();
+
+      if (data.websiteClosed === true) {
+        showClosed();
+
+        if (data.message) {
+          messageBox.value = data.message;
+        }
+
+      } else {
+        showOpen();
+      }
+
+    } catch (error) {
+
+      console.error(error);
+
+      statusText.textContent = "ERROR";
+      statusText.className = "closed";
+
+      msg.textContent =
+        "Firebase access error: " + error.message;
+
+      msg.style.color = "#ff5757";
+    }
+  }
+
+
+  /* ================================
+     CLOSE ALL
+     ================================ */
+
+  window.closeAll = async function () {
+
+    const message =
+      messageBox.value.trim() ||
+      "Website is temporarily closed. Please try again later.";
+
+    const confirmClose = confirm(
+      "Kya aap sab connected websites ko CLOSE karna chahte hain?"
+    );
+
+    if (!confirmClose) return;
+
+    setLoading(true);
+
+    try {
+
+      await set(settingsRef, {
+
+        websiteClosed: true,
+
+        message: message,
+
+        updatedAt: Date.now()
+
+      });
+
+      showClosed();
+
+      showMessage(
+        "✅ All connected websites marked as CLOSED.",
+        true
+      );
+
+    } catch (error) {
+
+      console.error(error);
+
+      showMessage(
+        "❌ Close failed: " + error.message,
+        false
+      );
+
+    }
+
+    setLoading(false);
+  };
+
+
+  /* ================================
+     OPEN ALL
+     ================================ */
+
+  window.openAll = async function () {
+
+    const confirmOpen = confirm(
+      "Kya aap sab connected websites ko OPEN karna chahte hain?"
+    );
+
+    if (!confirmOpen) return;
+
+    setLoading(true);
+
+    try {
+
+      await set(settingsRef, {
+
+        websiteClosed: false,
+
+        message: messageBox.value.trim() ||
+          "Website is temporarily closed.",
+
+        updatedAt: Date.now()
+
+      });
+
+      showOpen();
+
+      showMessage(
+        "✅ All connected websites marked as OPEN.",
+        true
+      );
+
+    } catch (error) {
+
+      console.error(error);
+
+      showMessage(
+        "❌ Open failed: " + error.message,
+        false
+      );
+
+    }
+
+    setLoading(false);
+  };
+
+
+  /* ================================
+     UI
+     ================================ */
+
+  function showClosed() {
+
+    statusText.textContent = "🔴 CLOSED";
+    statusText.className = "closed";
+
+  }
+
+
+  function showOpen() {
+
+    statusText.textContent = "🟢 OPEN";
+    statusText.className = "open";
+
+  }
+
+
+  function showMessage(text, success) {
+
+    msg.textContent = text;
+
+    msg.style.color =
+      success ? "#31e981" : "#ff5757";
+
+    setTimeout(() => {
+      msg.textContent = "";
+    }, 4000);
+
+  }
+
+
+  function setLoading(state) {
+
+    closeBtn.disabled = state;
+    openBtn.disabled = state;
+
+    if (state) {
+
+      closeBtn.textContent = "Please wait...";
+      openBtn.textContent = "Please wait...";
+
+    } else {
+
+      closeBtn.textContent = "🔴 CLOSE ALL WEBSITES";
+      openBtn.textContent = "🟢 OPEN ALL WEBSITES";
+
+    }
+  }
+
+
+  loadStatus();
+
+</script>
+
 </body>
 </html>
