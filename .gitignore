@@ -1,0 +1,4 @@
+node_modules/
+.env
+data/session.txt
+data/settings.json
