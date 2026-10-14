@@ -58,7 +58,7 @@ try {
   db = firebase.database();
   // Load the Testing project only on pages that actually manage/run Test Series.
   // Main app pages use educationqpp exclusively.
-  if (/(^|\/)(test-series|test-play|ss)\.html$/i.test(location.pathname)) {
+  if (/(^|\/)(test-series|test-play|control)\.html$/i.test(location.pathname)) {
     testDb = firebase.initializeApp(testFirebaseConfig, "testWeb").database();
   }
 } catch (e) { console.warn("Firebase init failed:", e); }

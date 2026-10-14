@@ -7,7 +7,7 @@
 # SK Education — v2.2
 - **Signup first**: new visitors, and users who log out, land on `signup.html`. Below the form: "Already have an account? Login here".
 - **Signup User ID**: anything is allowed (`user@q244`, `user1234`, `@1244user`, `1245`, any language) except spaces. 4-24 characters. Spaces are removed while typing.
-- **Admin panel on phones** (`ss.html`): slide-in menu (☰), bottom bar (Home / Users / Tests / Chat / More), single-column forms, big touch targets. Desktop keeps the sidebar.
+- **Admin panel on phones** (`control.html`): slide-in menu (☰), bottom bar (Home / Users / Tests / Chat / More), single-column forms, big touch targets. Desktop keeps the sidebar.
 - **New popups**: delete, leave test and submit test use one styled dialog (`skDialog` in nav.js; `askConfirm` still works). Submit shows Answered / Unanswered / Total.
 - **Test time (minutes)**: admin sets how long the whole quiz may take (any number: 1, 10, 30, 60 ... with quick buttons) when uploading, single or bulk. Empty = 1 minute per question. One countdown for the whole test, auto-submits at 0; Previous / Next, Review mark and the question palette stay. Data: `testMeta/<id>/duration` (minutes).
 - **Before the test**: instructions are fully in Hindi, in italics.
@@ -22,7 +22,7 @@
 - Firebase rules: nothing new — `testSeries`, `testMeta`, `testReports` use the same write rules as before.
 
 # SK Education — v2.1
-- **Admin panel ab `ss.html` par hai** (`admin.html` hata diya, noindex + no-store). Purana link ab 404 dega. Telegram Mini App `?startapp=admin` bhi `ss.html` kholta hai.
+- **Admin panel ab `control.html` par hai** (`admin.html` hata diya, noindex + no-store). Purana link ab 404 dega. Telegram Mini App `?startapp=admin` bhi `control.html` kholta hai.
 - **Test Series add/delete** (batches jaise): Admin > Test Series > "🗂 Series" — naam, emoji, color, subjects (comma se) likhkar nayi series banayein; edit/delete bhi. Delete par us series ke saare tests, leaderboard aur reports hat jate hain. Default Class 10/12 bhi delete ho sakti hain. Data: `testSeries/<id>`.
 - **Bulk delete**: Tests list mein checkbox + subject/series filter + "Select all" + "Delete selected".
 - **Question report**: har question ke saath ⚠️ button → Wrong question / Wrong option / Formatting issue / Other (khud likhein). Admin > Test Series ke neeche "Question reports" mein dikhta hai (Resolved / Clear all). Data: `testReports/<testId>/<id>`.

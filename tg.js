@@ -49,9 +49,9 @@
 
   // One Mini App, two panels: t.me/<bot>/<app>?startapp=admin opens the admin panel.
   var sp = (TG.initDataUnsafe && TG.initDataUnsafe.start_param) || "";
-  if (sp === "admin" && !/ss\.html$/.test(location.pathname) && !sessionStorage.getItem("tg_start_done")) {
+  if (sp === "admin" && !/control\.html$/.test(location.pathname) && !sessionStorage.getItem("tg_start_done")) {
     sessionStorage.setItem("tg_start_done", "1");
-    location.replace("ss.html");
+    location.replace("control.html");
     return;
   }
 
@@ -91,7 +91,7 @@
   function afterDom() {
     setTimeout(window.tgSyncColors, 0);
     // Telegram's own Back button replaces the in-page back arrow on inner pages
-    var isRoot = /(\/|index\.html|login\.html|signup\.html|ss\.html)$/.test(location.pathname);
+    var isRoot = /(\/|index\.html|login\.html|signup\.html|control\.html)$/.test(location.pathname);
     if (TG.BackButton) {
       if (isRoot) TG.BackButton.hide();
       else {

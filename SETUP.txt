@@ -25,4 +25,4 @@ SK Education v1.7
 
 8. v2.1 Firebase rules (Realtime DB, testing-5ce76): "testReports" aur "testSeries" par bhi wahi rule lagayein jo "testMeta" par hai
    (testReports: koi bhi user push kar sake; testSeries: sirf admin ke liye likhna ho to admin ko token se likhwayein).
-9. Admin ka naya address: /ss.html  (Telegram: ?startapp=admin). Lamba password rakhein — server par 5 galat try ke baad 15 min lock + Telegram alert pehle se hai.
+9. Admin ka naya address: /control.html  (Telegram: ?startapp=admin). Lamba password rakhein — server par 5 galat try ke baad 15 min lock + Telegram alert pehle se hai.

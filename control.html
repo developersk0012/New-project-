@@ -1,0 +1,1268 @@
+<!doctype html><html lang="en"><head>
+<meta name="robots" content="noindex,nofollow,noarchive"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Admin Panel - SK Education</title><meta name="theme-color" content="#0B0E15"><meta name="description" content="SK Education admin panel."><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://educationqpp-default-rtdb.firebaseio.com" crossorigin><link rel="preconnect" href="https://testing-5ce76-default-rtdb.firebaseio.com" crossorigin><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"><script src="tg.js"></script><script src="data.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script defer src="config.js"></script><script defer src="nav.js"></script><script src="quiz-parser.js"></script><script src="ts.js"></script>
+<style>
+.admin{max-width:1180px}
+.atabs{position:sticky;top:calc(56px + var(--safe-t));z-index:15;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+.atabs::-webkit-scrollbar{display:none}
+.atab{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:9px;border:0;background:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;position:relative;transition:background .15s,color .15s}
+.atab:hover{background:var(--surface2);color:var(--text)}
+.atab.active{background:color-mix(in srgb,var(--brand1) 14%,transparent);color:var(--brand1)}
+.tab-badge{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--danger);color:#fff;font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.tab-badge[hidden]{display:none}
+.abody{padding:18px 16px calc(40px + var(--safe-b))}
+.admin-section{display:none}.admin-section.active{display:block}
+.toolbar{display:flex;gap:10px;margin-bottom:12px}
+.av{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--brand1) 16%,transparent);color:var(--brand1);font-weight:700;font-size:14px}
+.urow{display:flex;align-items:center;gap:12px}
+.urow .meta{min-width:0}
+.urow b{display:block;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.urow small{display:block;color:var(--muted);font-size:11.5px}
+.tag-blocked{color:var(--danger);font-weight:700}
+.admin .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.admin>div#panel{padding:0}
+.admin .stat{text-align:left;padding:18px 14px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 14px;display:flex;align-items:center;gap:14px}
+.stat .si{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--brand1) 13%,transparent);color:var(--brand1);flex-shrink:0}
+.stat b{display:block;font-size:24px;font-weight:700;line-height:1.1}
+.stat small{color:var(--muted);font-size:12px}
+.chat-admin{display:grid;grid-template-columns:320px 1fr;gap:0;height:calc(100vh - 210px);height:calc(100dvh - 210px);min-height:420px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.chat-side{display:flex;flex-direction:column;border-right:1px solid var(--line);min-height:0}
+.chat-side h2{font-size:14px;margin:0;padding:14px 16px;border-bottom:1px solid var(--line)}
+.chat-users{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:0;padding:0}
+.chat-user{border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;padding:12px 16px;gap:12px}
+.chat-user::before{display:none}
+.chat-user:hover{background:var(--surface2)}
+.chat-user.active{background:color-mix(in srgb,var(--brand1) 10%,transparent);box-shadow:inset 3px 0 0 var(--brand1)}
+.chat-user .cu-main{min-width:0;flex:1}
+.chat-user .cu-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.chat-user b{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-user .cu-time{font-size:10.5px;color:var(--muted);flex-shrink:0}
+.chat-user small{max-width:none;margin-top:2px;font-size:12px}
+.chat-user.unread b,.chat-user.unread small{color:var(--text);font-weight:700}
+.chat-user.unread .cu-time{color:var(--brand1);font-weight:700}
+.udot{width:9px;height:9px;border-radius:50%;background:var(--brand1);flex-shrink:0}
+.chat-window{border:0;border-radius:0;display:flex;flex-direction:column;min-width:0;min-height:0}
+.chat-head{flex-direction:row;align-items:center;gap:10px;padding:10px 14px}
+.chat-head .grow{flex:1;min-width:0}
+.chat-head b{font-size:14px}
+.chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);font-size:13px}
+#chatBox{display:none;flex-direction:column;flex:1;min-height:0}
+.bubble{position:relative;padding-right:12px}
+.bubble .b-del{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:7px;border:0;background:rgba(0,0,0,.22);color:#fff;display:none;align-items:center;justify-content:center;cursor:pointer}
+.bubble:hover .b-del,.bubble.sel .b-del{display:flex}
+.bubble:not(.me) .b-del{background:var(--surface2);color:var(--danger)}
+.bubble .reply{font-size:10.5px;opacity:.75;border-left:3px solid currentColor;padding-left:7px;margin-bottom:5px}
+.bubble .photo{max-width:230px;max-height:260px;border-radius:10px;display:block;margin-bottom:5px}
+#backToList{display:none}
+@media (max-width:720px){
+  .admin .stat-grid{grid-template-columns:1fr}
+  .chat-users{max-height:none}
+  .chat-admin{grid-template-columns:1fr;height:calc(100vh - 190px);height:calc(100dvh - 190px)}
+  .chat-admin .chat-window{display:none}
+  .chat-admin.show-window .chat-side{display:none}
+  .chat-admin.show-window .chat-window{display:flex}
+  #backToList{display:flex}
+  .bubble .b-del{display:flex}
+}
+@media (min-width:600px){.abody form{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;align-items:start}.abody form .field:has(textarea),.abody form button{grid-column:1/-1}}
+.page-card h2{padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.admin-list{max-height:none}
+.set-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:720px){.set-grid{grid-template-columns:1fr}}
+.admin-row{flex-wrap:wrap}.admin-row>*{min-width:0}
+.abody table{display:block;max-width:100%;overflow-x:auto}
+.atab{min-height:44px}
+@media (orientation:landscape) and (max-height:480px){.chat-admin{height:calc(100dvh - 130px)}.atabs{top:calc(48px + var(--safe-t))}}
+html.tg .abody{padding-bottom:calc(40px + var(--tg-safe-area-inset-bottom,0px))}
+</style></head>
+<body><div class="admin">
+<header class="topbar"><button class="icon-btn adm-menu" id="admMenu" type="button" aria-label="Open menu"></button><div class="brand"><img src="icons/logo-96.png" width="30" height="30" alt="SK" onerror="this.onerror=null;this.src='icons/icon-192.png'"><span id="admTitle">SK Education · Admin</span></div><div style="display:flex;gap:8px"><button class="icon-btn sk-theme-toggle" type="button" onclick="toggleTheme()" aria-label="Theme"></button><button class="icon-btn" type="button" onclick="location.href='index.html'" aria-label="Open website">🏠</button></div></header>
+
+<div id="login" class="login-page" style="min-height:calc(100vh - 90px);min-height:calc(100dvh - 90px)"><div class="login-card"><img src="icons/icon-512.png" alt=""><h1>Admin Panel</h1><p>Enter admin password</p><form id="adminLogin"><div class="field"><input id="apw" type="password" required placeholder="Admin password" autocomplete="current-password"></div><button class="primary">Login</button></form></div></div>
+
+<div id="panel" style="display:none">
+<nav class="atabs" id="atabs" aria-label="Admin sections"></nav>
+<div class="abody">
+
+<div class="admin-section active" id="sec-dashboard">
+  <div class="dash-grid" id="dashGrid"></div>
+  <div class="page-card"><h2>Quick actions</h2><div class="quick-actions"><button class="primary" type="button" data-go="modapks"></button><button class="primary" type="button" data-go="modsites"></button><button class="secondary" type="button" data-go="chat"></button></div></div>
+  <div class="page-card"><h2>Security status</h2><p class="sec-note" id="secStatus"></p></div>
+</div>
+
+<div class="admin-section" id="sec-users"><div class="page-card"><h2>Users</h2><div class="toolbar"><input class="search" id="userSearch" placeholder="Search by name or ID…"></div><div id="users" class="admin-list"></div></div></div>
+
+<div class="admin-section" id="sec-accounts"><div class="set-grid">
+  <div class="page-card"><h2>🔑 Create a new ID / Password</h2>  <form id="accForm" autocomplete="off"><div class="field"><label>Name</label><input id="accName" maxlength="40"></div>
+  <div class="field"><label>User ID</label><input id="accId" required maxlength="24" autocapitalize="off"></div>
+  <div class="field"><label>Password</label><div style="display:flex;gap:8px"><input id="accPw" required maxlength="64"><button type="button" class="secondary" id="accGen" style="width:auto;flex-shrink:0">Auto</button></div></div>
+  <button class="primary" type="submit" id="accBtn">Create account / Reset password</button></form>
+  <button class="secondary" type="button" id="accPublic" style="width:100%;margin-top:10px">⚡ Fill the public ID (sk_0012)</button>
+  <div id="accOut"></div></div>
+  <div class="page-card"><h2>How the public ID works</h2></div>
+</div></div>
+<div class="admin-section" id="sec-chat"><div class="chat-admin" id="chatWrap">
+  <div class="chat-side"><h2>Conversations</h2><div class="chat-users" id="chatUsers"></div></div>
+  <div class="chat-window">
+    <div class="chat-empty" id="chatEmpty"><span id="emptyIco"></span>Select a conversation</div>
+    <div id="chatBox">
+      <div class="chat-head"><button class="icon-btn" id="backToList" type="button" aria-label="Back">←</button><div class="av" id="chatAv">U</div><div class="grow"><b id="chatName">User</b><small id="chatPresence"></small></div><button class="icon-btn" id="delChat" type="button" title="Delete conversation" aria-label="Delete conversation"></button></div>
+      <div class="messages" id="adminMessages"></div>
+      <div class="chat-compose"><input id="adminText" placeholder="Type a message…" autocomplete="off"><button class="primary" id="adminSend" type="button" aria-label="Send"></button></div>
+    </div>
+  </div>
+</div></div>
+
+<div class="admin-section" id="sec-tests">
+<div class="seg" id="tsMode"><button type="button" data-m="bulk" class="on">⚡ Bulk add</button><button type="button" data-m="single">Single add</button><button type="button" data-m="cats">🗂 Subcategories</button><button type="button" data-m="series">Series</button></div>
+<div class="page-card" id="tsCatCard" style="display:none"><h2>🗂 Subcategories</h2><p class="field-hint" style="margin:0 0 12px">Add subcategories inside a subject, for example Hindi → Poetry, Prose, Grammar. When uploading a test, choose the category, then the subject, then the subcategory.</p>
+<div class="cat-pick"><div class="field"><label>Category</label><select id="ctCls"></select></div><div class="field"><label>Subject</label><select id="ctSub"></select></div></div>
+<form id="ctForm" class="cat-add"><input id="ctName" maxlength="120" placeholder="New subcategory (e.g. Poetry)" required autocomplete="off"><button class="primary" type="submit" id="ctAdd">Add</button></form>
+<div class="field-hint" style="margin:-4px 0 12px">Tip: type several names separated by commas to add them together.</div>
+<div id="ctList" class="admin-list"></div></div>
+<div class="page-card" id="tsSeriesCard" style="display:none"><h2 id="srTitle">🗂 Add series</h2><form id="srForm"><div class="field"><label>Series name *</label><input id="srName" required maxlength="40"></div><div class="field"><label>Tag line</label><input id="srTag" maxlength="50"></div><div class="field"><label>Emoji</label><input id="srEmoji" maxlength="4"></div><div class="field"><label>Color</label><input id="srColor" type="color" value="#5B7CFA" style="height:44px;padding:4px"></div><div class="field" style="grid-column:1/-1"><label>Subjects * (comma separated)</label><textarea id="srSubs" rows="3" required></textarea></div><div class="bk-actions" style="grid-column:1/-1"><button class="primary" id="srSave" type="submit">Add series</button><button class="secondary" id="srCancel" type="button" hidden>Cancel</button></div></form></div>
+<div class="page-card" id="srListCard" style="display:none"><h2>All series <span id="srCount" style="color:var(--muted);font-weight:500"></span></h2><div id="srList" class="admin-list"></div></div>
+<div class="page-card" id="tsBulkCard">
+<h2>⚡ Bulk add</h2>
+<form id="bkForm">
+<div class="field"><label>Category *</label><select id="bkCls"><option value="10">Class 10th</option><option value="12">Class 12th</option></select></div>
+<div class="field"><label>Default subject</label><select id="bkSub"></select></div>
+<div class="field" id="bkSubCatF" hidden><label>Default subcategory</label><select id="bkSubCat"></select></div>
+<div class="field"><label>Time for the whole quiz (minutes)</label><input id="bkDur" type="number" inputmode="numeric" min="1" max="600" placeholder="e.g. 10, 30, 60"><div class="dur-chips" data-for="bkDur"><button type="button" data-v="1">1 min</button><button type="button" data-v="10">10 min</button><button type="button" data-v="30">30 min</button><button type="button" data-v="60">60 min</button></div><div class="field-hint">Leave empty for the default (1 minute per question).</div></div>
+<div class="field"><label style="display:flex;gap:8px;align-items:center"><input id="bkReplace" type="checkbox" style="width:auto" checked> Replace existing chapters</label></div>
+<label class="bk-drop" id="bkDrop"><input id="bkFiles" type="file" multiple hidden><span class="bk-drop-ic">📂</span><b>Choose files</b></label>
+<div id="bkList" class="bk-list"></div>
+<div id="bkProg" class="bk-prog" hidden><i></i></div>
+<div class="bk-actions"><button class="primary" id="bkGo" type="submit" disabled>⬆ Upload all</button><button class="secondary" id="bkClear" type="button" disabled>Clear list</button></div>
+</form></div>
+<div class="page-card" id="tsSingleCard" style="display:none"><h2 id="tsFormTitle">Test Series upload</h2><form id="tsForm">
+<div class="field"><label>Category *</label><select id="tsCls"><option value="10">Class 10th</option><option value="12">Class 12th</option></select></div>
+<div class="field"><label>Subject *</label><select id="tsSub"></select></div>
+<div class="field" id="tsSubCatF" hidden><label>Subcategory</label><select id="tsSubCat"></select></div>
+<div class="field"><label>Chapter name *</label><input id="tsChap" required maxlength="90"></div>
+<div class="field"><label>Time for the whole quiz (minutes)</label><input id="tsDur" type="number" inputmode="numeric" min="1" max="600" placeholder="e.g. 10, 30, 60"><div class="dur-chips" data-for="tsDur"><button type="button" data-v="1">1 min</button><button type="button" data-v="10">10 min</button><button type="button" data-v="30">30 min</button><button type="button" data-v="60">60 min</button></div><div class="field-hint">Leave empty for the default (1 minute per question).</div></div>
+<div class="field"><label>Questions file * (JSON / HTML / PHP / JS / TXT / CSV)</label><input id="tsFile" type="file" accept=".json,.html,.htm,.php,.js,.txt,.md,.csv,.tsv,application/json,text/*"></div>
+<div class="field"><label>Paste questions (optional)</label><textarea id="tsPaste" rows="4"></textarea></div>
+<div class="field"><label>Answer numbering</label><select id="tsBase"><option value="auto">Auto detect</option><option value="1">Starts from 1</option><option value="0">Starts from 0</option></select></div>
+<div id="tsPrev" style="grid-column:1/-1"></div>
+<button class="primary" id="tsSave" type="submit" disabled>Upload Test</button><button class="secondary" id="tsCancel" type="button" hidden>Edit cancel</button>
+<button class="secondary" id="tsTpl" type="button">⬇ Sample JSON</button>
+</form></div>
+<div class="page-card"><h2>Uploaded tests <span id="tsCount" style="color:var(--muted);font-weight:500"></span></h2><div class="toolbar"><select id="tsFilter"><option value="">All classes</option><option value="10">Class 10th</option><option value="12">Class 12th</option></select><select id="tsFilterSub"><option value="">All subjects</option></select><input class="search" id="tsSearch" placeholder="Search"></div>
+<div class="ts-bulkbar"><label><input type="checkbox" id="tsAll"> Select all</label><span id="tsSelN"></span><button class="danger mini" id="tsDelSel" type="button" disabled>🗑 Delete selected</button></div>
+<div id="tsList" class="admin-list"><div class="skel"></div></div></div>
+
+</div>
+<div class="admin-section" id="sec-reports">
+<div class="page-card" id="tsRepCard"><h2>⚠️ Question reports <span id="repCount" style="color:var(--muted);font-weight:500"></span></h2><p class="field-hint" style="margin:0 0 12px">Reports stay here until you mark them as resolved — even if the test has been deleted.</p><div class="toolbar"><select id="repFilter"><option value="">All types</option><option value="wrong_question">Wrong question</option><option value="wrong_option">Wrong option</option><option value="formatting">Formatting issue</option><option value="other">Other</option></select><button class="secondary mini" id="repReload" type="button">Reload</button></div><div id="repList" class="admin-list"><div class="empty">No reports</div></div></div>
+</div>
+<div class="admin-section" id="sec-modapks">
+<div class="page-card"><h2 id="apkFormTitle">Add Mod APK</h2><form id="apkForm">
+<div class="field"><label>Mod APK name *</label><input id="apkName" required maxlength="80"></div>
+<div class="field"><label>Version</label><input id="apkVer" maxlength="20"></div><div class="field"><label>File size</label><input id="apkSize" maxlength="20"></div>
+<div class="field"><label>Download link *</label><input id="apkUrl" required placeholder="https://..."></div>
+<div class="field"><label>About / description</label><textarea id="apkAbout" rows="3" maxlength="600"></textarea></div>
+<div class="field"><label>App icon (upload)</label><input id="apkFile" type="file" accept="image/*"></div>
+<div class="field"><label>Ya app icon ka link</label><div class="icon-prev"><img id="apkPrev" src="icons/icon-192.png" alt=""><input id="apkImg" placeholder="https://..." style="flex:1;min-width:0"></div></div>
+<div class="field"><label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input id="apkPin" type="checkbox" style="width:auto"> Pin to the top (Featured)</label></div>
+<button class="primary" id="apkSave" type="submit">Upload Mod APK</button><button class="secondary" id="apkCancel" type="button" hidden>Edit cancel</button>
+</form></div>
+<div class="page-card"><h2>Mod APKs <span id="apkCount" style="color:var(--muted);font-weight:500"></span></h2><div class="toolbar"><input class="search" id="apkSearch" placeholder="Search..."></div><div id="apkList" class="admin-list"><div class="skel"></div></div></div>
+</div>
+<div class="admin-section" id="sec-modsites">
+<div class="page-card"><h2 id="siteFormTitle">Add Website</h2><form id="siteForm">
+<div class="field"><label>Website name *</label><input id="siteName" required maxlength="80"></div>
+
+<div class="field"><label>Website link *</label><input id="siteUrl" required placeholder="https://..."></div>
+<div class="field"><label>About / description</label><textarea id="siteAbout" rows="3" maxlength="600"></textarea></div>
+<div class="field"><label>Website logo (upload)</label><input id="siteFile" type="file" accept="image/*"></div>
+<div class="field"><label>Ya website logo ka link</label><div class="icon-prev"><img id="sitePrev" src="icons/icon-192.png" alt=""><input id="siteImg" placeholder="https://..." style="flex:1;min-width:0"></div></div>
+<div class="field"><label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input id="sitePin" type="checkbox" style="width:auto"> Pin to the top (Featured)</label></div>
+<button class="primary" id="siteSave" type="submit">Upload Website</button><button class="secondary" id="siteCancel" type="button" hidden>Edit cancel</button>
+</form></div>
+<div class="page-card"><h2>Websites <span id="siteCount" style="color:var(--muted);font-weight:500"></span></h2><div class="toolbar"><input class="search" id="siteSearch" placeholder="Search..."></div><div id="siteList" class="admin-list"><div class="skel"></div></div></div>
+</div>
+<div class="admin-section" id="sec-courses">
+<div class="page-card"><h2>Class 12th Batch Manager</h2><p style="color:var(--muted);font-size:12px;margin:0 0 12px">Create and manage the new Class 12th batches in educationqpp. Old Class 10 batches are not preloaded.</p>
+<form id="batchForm"><input id="batchEditId" type="hidden"><div class="field"><label>Batch name *</label><input id="batchName" required maxlength="90" placeholder="e.g. Bihar Board 12th Science"></div>
+<div class="field"><label>Icon / Emoji</label><input id="batchIcon" maxlength="8" value="📚" placeholder="📚"></div>
+<div class="field"><label>Thumbnail image URL</label><input id="batchImage" type="url" placeholder="https://..."></div>
+<div class="field"><label>Description</label><textarea id="batchDescription" rows="2" maxlength="240" placeholder="Batch details"></textarea></div>
+<div class="field"><label>Access</label><select id="batchAccess"><option value="free">Free</option><option value="paid">Paid</option></select></div>
+<div class="btn-row"><button class="primary" id="batchSave" type="submit">Add Batch</button><button class="secondary" id="batchCancel" type="button" hidden>Cancel edit</button></div></form></div>
+<div class="page-card"><h2>Bulk Batch Upload</h2><p style="color:var(--muted);font-size:12px;margin:0 0 12px">Upload a JSON file or paste an array of batches. Existing batches are not deleted.</p><div class="field"><label>Choose JSON file</label><input id="batchBulkFile" type="file" accept="application/json,.json"></div><div class="field"><label>Or paste JSON</label><textarea id="batchBulkJson" rows="6" placeholder='[{"name":"Bihar Board Class 12 Science","icon":"📚","description":"Physics, Chemistry, Biology","access":"free","image":"https://..."}]'></textarea></div><div class="btn-row"><button class="primary" type="button" id="batchBulkUpload">Upload batches</button><button class="secondary" type="button" id="batchBulkClear">Clear</button></div><div id="batchBulkStatus" style="font-size:12px;color:var(--muted);margin-top:8px"></div></div>
+<div class="page-card"><h2>Courses &amp; Thumbnails</h2><p style="color:var(--muted);font-size:12px;margin:0 0 12px">Edit batch details, change each course thumbnail, and view PDF / Video / DPP counts for every subject.</p><div class="agrid" id="courseGrid"><div class="skel" style="height:200px"></div></div></div></div>
+<div class="admin-section" id="sec-enroll"><div class="page-card"><h2>Enrollments</h2><div class="toolbar"><input class="search" id="enrSearch"placeholder="Search"></div><div id="enrList"><div class="skel"></div></div></div></div>
+<div class="admin-section" id="sec-banners">
+<div class="page-card"><h2>Website Logo</h2><p style="color:var(--muted);font-size:12px;margin:0 0 12px">This logo appears in the main website header, menu and install prompt.</p><form id="brandLogoForm"><div class="field"><label>Upload logo image</label><input id="brandLogoFile" type="file" accept="image/*"></div><div class="field"><label>Or paste image URL</label><input id="brandLogoUrl" type="url" placeholder="https://..."></div><div class="field"><img id="brandLogoPreview" src="icons/logo-96.png" alt="Logo preview" style="width:76px;height:76px;object-fit:contain;border-radius:12px;background:#171b26;padding:5px" onerror="this.onerror=null;this.src='icons/icon-192.png'"></div><button class="primary" type="submit">Save Website Logo</button><button class="secondary" type="button" id="brandLogoReset">Use default logo</button></form></div>
+<div class="page-card"><h2>Home Banners</h2><form id="bannerForm"><div class="field"><label>Banner image file</label><input id="bannerFile" type="file" accept="image/*"></div><div class="field"><label>Or image URL</label><input id="bannerUrl" type="url" placeholder="https://..."></div><div class="field"><label>Title</label><input id="bannerTitle" placeholder="Banner title"></div><div class="field"><label>Subtitle</label><input id="bannerSub" placeholder="Banner subtitle"></div><button class="primary">Add Banner</button></form><div id="bannerList" class="admin-list" style="margin-top:14px"></div></div></div>
+
+<div class="admin-section" id="sec-analysis">
+  <div class="stat-grid"><div class="stat"><div class="si" id="siU"></div><div><b id="uCount">0</b><small>Users</small></div></div><div class="stat"><div class="si" id="siC"></div><div><b id="cCount">0</b><small>Conversations</small></div></div><div class="stat"><div class="si" id="siR"></div><div><b id="rCount">0</b><small>Ratings <span id="avgRating"></span></small></div></div></div>
+  <div class="page-card"><h2>Ratings &amp; Reviews</h2><div id="ratings" class="admin-list"></div></div>
+</div>
+
+<div class="admin-section" id="sec-activity"><div class="page-card"><h2>Daily Activity</h2>
+  <div class="toolbar" style="gap:8px;flex-wrap:wrap">
+    <button class="mini secondary" id="actPrev" type="button" aria-label="Previous day">◀</button>
+    <input class="search" id="actDate" type="date" style="max-width:170px;flex:0 1 170px">
+    <button class="mini secondary" id="actNext" type="button" aria-label="Next day">▶</button>
+    <button class="mini secondary" id="actToday" type="button">Aaj</button>
+  </div>
+  <div class="stat-grid" id="actStats" style="margin:12px 0"></div>
+  <div id="actChart" style="margin-bottom:14px"></div>
+  <div class="toolbar" style="gap:8px;flex-wrap:wrap">
+    <button class="mini" id="actTabCame" type="button">Visited</button>
+    <button class="mini secondary" id="actTabNot" type="button">Not visited</button>
+    <select class="search" id="actGap" style="max-width:150px;flex:0 1 150px"><option value="0">All</option><option value="3">Absent 3+ days</option><option value="7">Absent 7+ days</option><option value="30">Absent 30+ days</option></select>
+    <input class="search" id="actSearch" placeholder="Search name / ID…" style="flex:1;min-width:120px">
+  </div>
+  <div id="actList" class="admin-list" style="margin-top:10px"></div>
+  <p style="color:var(--muted);font-size:11px;margin:10px 2px 0">The daily record is saved from this update onwards. For earlier days only "last seen" is available.</p>
+</div></div>
+
+<div class="admin-section" id="sec-settings"><div class="set-grid">
+  <div class="page-card"><h2>Website Control</h2><form id="settingsForm"><div class="field"><label>Website domain / share link</label><input id="domain" type="url" placeholder="https://your-domain.com"></div><div class="field"><label>Maintenance reason</label><textarea id="maintReason" rows="3"></textarea></div><button class="primary">Save Settings</button></form><button id="maintBtn" type="button" class="danger" style="margin-top:10px;width:100%">Loading...</button></div>
+  <div><div class="page-card"><h2>Admin Password</h2></div>
+  <div class="page-card"><h2>Telegram Join Popup</h2>  <form id="jpForm"><div class="field"><label style="display:flex;gap:8px;align-items:center"><input id="jpOn" type="checkbox" style="width:auto" checked> Keep the popup enabled</label></div>
+  <div class="field"><label>Telegram link</label><input id="jpUrl" placeholder="https://t.me/..."></div>
+  <div class="field"><label>Title</label><input id="jpTitle" maxlength="60"></div>
+  <div class="field"><label>Message</label><textarea id="jpText" rows="2" maxlength="160"></textarea></div>
+  <button class="primary" type="submit">Save popup</button></form></div>
+  <div class="page-card"><h2>Account</h2><button class="danger" style="width:100%" id="logoutBtn" type="button"></button></div></div>
+</div></div>
+
+</div></div></div>
+<div class="adm-ov" id="admOv"></div><nav class="adm-bar" id="admBar" aria-label="Quick navigation"></nav>
+<div id="toast"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+
+themeInit();
+const $=id=>document.getElementById(id);
+const TABS=[["dashboard","Dashboard","home"],["users","Users","users"],["accounts","Accounts","lock"],["tests","Test Series","test"],["reports","Reports","flag"],["modapks","Mod APKs","android"],["modsites","Mod Websites","globe"],["courses","Courses","book"],["enroll","Enrollments","enrolled"],["activity","Daily Activity","calendar"],["chat","Chat","chat"],["banners","Banners","image"],["analysis","Analysis","chart"],["settings","Settings","settings"]];
+let users={},chatMeta={},ratingData={},activeUid=null,chatRef=null,chatHandler=null,chatsReady=false,typingT=0;
+
+/* ---------- static icons ---------- */
+$("atabs").innerHTML=TABS.map(([k,l,i])=>`<button class="atab${k==="dashboard"?" active":""}" data-tab="${k}" type="button">${icon(i,17)}<span>${l}</span>${k==="chat"?'<i class="tab-badge" id="chatBadge" hidden>0</i>':k==="reports"?'<i class="tab-badge" id="repBadge" hidden>0</i>':""}</button>`).join("");
+$("emptyIco").innerHTML=icon("chat",34);
+$("admMenu").innerHTML=icon("menu",20);
+$("admBar").innerHTML=[["dashboard","Home","home"],["users","Users","users"],["tests","Tests","test"],["chat","Chat","chat"],["more","More","menu"]].map(([k,l,i])=>`<button type="button" data-tab="${k}" class="${k==="dashboard"?"active":""}">${icon(i,20)}<span>${l}</span>${k==="chat"?'<i class="tab-badge" id="chatBadge2" hidden>0</i>':""}</button>`).join("");
+$("admMenu").onclick=()=>admDrawer(!document.documentElement.classList.contains("adm-drawer"));
+$("admOv").onclick=()=>admDrawer(false);
+$("admBar").onclick=e=>{const b=e.target.closest("button[data-tab]");if(!b)return;if(b.dataset.tab==="more")admDrawer(true);else setTab(b.dataset.tab)};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")admDrawer(false)});
+$("adminSend").innerHTML=icon("send",17);
+$("delChat").innerHTML=icon("trash",17);
+$("logoutBtn").innerHTML=icon("logout",17)+" Logout";
+$("siU").innerHTML=icon("users",20);$("siC").innerHTML=icon("chat",20);$("siR").innerHTML=icon("star",20);
+
+const TAB_NAME=Object.fromEntries(TABS.map(x=>[x[0],x[1]]));
+function admDrawer(open){document.documentElement.classList.toggle("adm-drawer",!!open)}
+function setTab(t){
+  if(window._lazyLoad)_lazyLoad(t);
+  admDrawer(false);$("admTitle").textContent=t==="dashboard"?"SK Education · Admin":(TAB_NAME[t]||"Admin");
+  document.querySelectorAll(".adm-bar button").forEach(x=>x.classList.toggle("active",x.dataset.tab===t||(x.dataset.tab==="more"&&!["dashboard","users","tests","chat"].includes(t))));
+  scrollTo(0,0);
+  if(t==="dashboard")try{renderDash()}catch(e){}
+  if(t==="activity"&&typeof renderActivity==="function")setTimeout(()=>{try{renderActivity()}catch(e){}},0);
+  document.querySelectorAll(".atab").forEach(x=>x.classList.toggle("active",x.dataset.tab===t));
+  document.querySelectorAll(".admin-section").forEach(x=>x.classList.toggle("active",x.id==="sec-"+t));
+}
+$("atabs").onclick=e=>{const b=e.target.closest(".atab");if(b)setTab(b.dataset.tab)};
+
+async function safe(fn,fallback=null,timeout=9000){
+  try{return await withTimeout(Promise.resolve().then(fn),timeout)}
+  catch(err){console.error("Admin load error:",err);return fallback}
+}
+const tok=()=>sessionStorage.getItem("sk_admin_token")||"";
+const adminHeaders=x=>Object.assign({"x-admin-token":tok()},x||{});
+async function uploadImg(file){
+  if(!file)throw new Error("Choose an image first");
+  if(!/^image\//i.test(file.type))throw new Error("Please choose a valid image file");
+  if(file.size>10*1024*1024)throw new Error("Image must be smaller than 10 MB");
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
+  try{
+    const r=await fetch("/api/upload-image",{method:"POST",headers:adminHeaders({"Content-Type":file.type}),body:file,signal:controller.signal,cache:"no-store"});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.ok)throw new Error(j.error||("Image upload failed (HTTP "+r.status+")"));
+    if(!j.url||!/^https:\/\//i.test(j.url))throw new Error("ImgBB did not return a valid image URL");
+    return j.url;
+  }catch(err){if(err.name==="AbortError")throw new Error("Image upload timed out. Check internet and ImgBB API key.");throw err}
+  finally{clearTimeout(timer)}
+}
+function adminLogout(){["sk_admin","sk_admin_token","sk_admin_exp"].forEach(k=>sessionStorage.removeItem(k));location.replace("control.html")}
+$("adminLogin").onsubmit=async e=>{
+  e.preventDefault();
+  const btn=e.target.querySelector("button");btn.disabled=true;btn.textContent="Checking...";
+  try{
+    const r=await fetch("/api/admin-login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:$("apw").value})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok&&j.ok){sessionStorage.setItem("sk_admin_token",j.token);sessionStorage.setItem("sk_admin_exp",String(j.exp));$("apw").value="";openAdmin()}
+    else toast(r.status===429?"🔒 "+(j.error||"Locked")+(j.retryAfter?" ("+Math.ceil(j.retryAfter/60)+" min)":""):(j.error||"Wrong password"),"error");
+  }catch(err){toast("Could not connect to the server (/api)","error")}
+  finally{btn.disabled=false;btn.textContent="Login"}
+};
+$("logoutBtn").onclick=adminLogout;
+let expT=null;
+function watchExpiry(){clearInterval(expT);expT=setInterval(()=>{const x=+sessionStorage.getItem("sk_admin_exp")||0;if(x&&Date.now()>x){toast("Session expired — please log in again","error");clearInterval(expT);setTimeout(adminLogout,1500)}},15000)}
+
+let started=false;
+function openAdmin(){
+  $("login").style.display="none";$("panel").style.display="block";document.documentElement.classList.add("adm-in");
+  if(started)return;started=true;
+  startUsers();
+  // heavy parts start only after the panel is visible (chats = every conversation, ratings = every rating)
+  const lazy={reports:0,chat:0,banners:0,analysis:0,settings:0,courses:0,enroll:0,modapks:0,modsites:0,tests:0};
+  const load={reports:()=>repLoad(),chat:()=>startChats(),banners:()=>safe(()=>renderBanners()),analysis:()=>loadRatings(),settings:()=>safe(()=>loadSettings()),courses:()=>safe(()=>loadCourses()),enroll:()=>safe(()=>loadEnroll()),tests:()=>tsLoad(),modapks:()=>modLoad("modApks"),modsites:()=>modLoad("modSites")};
+  window._lazyLoad=t=>{if(lazy[t]===0){lazy[t]=1;load[t]()}};
+  watchExpiry();renderDash();setTimeout(()=>{_lazyLoad("chat");_lazyLoad("modapks");_lazyLoad("modsites");_lazyLoad("tests");loadJoinPopup()},1800);                 // unread badge / new-message alerts
+  setTimeout(()=>{["settings","banners","analysis"].forEach(_lazyLoad)},4000);
+}
+
+/* ---------- Users (live) ---------- */
+function startUsers(){
+  try{const c=JSON.parse(localStorage.getItem("sk_admin_users")||"null");if(c&&Object.keys(c).length){users=c;$("uCount").textContent=Object.keys(users).length;renderUsers()}else $("users").innerHTML='<div class="skel"></div><div class="skel" style="margin-top:8px"></div>'}catch(e){}
+  db.ref("users").on("value",s=>{users=s.val()||{};try{localStorage.setItem("sk_admin_users",JSON.stringify(users))}catch(e){}$("uCount").textContent=Object.keys(users).length;renderUsers();try{renderActivity()}catch(e){}try{renderDash()}catch(e){}},err=>{console.error(err);$("users").innerHTML='<div class="empty">Could not load users</div>'});
+}
+const initial=n=>(String(n||"U").trim()[0]||"U").toUpperCase();
+function renderUsers(){
+  const q=$("userSearch").value.trim().toLowerCase();
+  const rows=Object.entries(users).filter(([,u])=>!q||((u.name||"")+" "+(u.loginId||"")).toLowerCase().includes(q))
+   .sort((a,b)=>new Date(b[1].lastSeen||0)-new Date(a[1].lastSeen||0));
+  $("users").innerHTML=rows.map(([uid,u])=>`<div class="admin-row" data-uid="${esc(uid)}"><div class="urow"><div class="av">${esc(initial(u.name||u.loginId))}</div><div class="meta"><b>${esc(u.name||u.loginId||"User")}</b><small>${esc(u.loginId||"")} · Last seen ${u.lastSeen?esc(new Date(u.lastSeen).toLocaleString()):"never"}</small>${u.blocked?'<small class="tag-blocked">BLOCKED</small>':""}</div></div><div class="mini-actions"><button class="mini secondary" data-act="msg" title="Send message">${icon("chat",14)}</button><button class="mini ${u.blocked?"secondary":"danger"}" data-act="block">${u.blocked?"Unblock":"Block"}</button><button class="mini danger" data-act="del" title="Delete user">${icon("trash",14)}</button></div></div>`).join("")||'<div class="empty">No users found</div>';
+}
+$("userSearch").oninput=renderUsers;
+$("users").onclick=async e=>{
+  const b=e.target.closest("button[data-act]");if(!b)return;
+  const uid=b.closest("[data-uid]").dataset.uid,u=users[uid]||{};
+  if(b.dataset.act==="msg"){setTab("chat");openChat(uid)}
+  else if(b.dataset.act==="block"){
+    try{
+      if(u.blocked){await db.ref("users/"+uid+"/blocked").set(false);await db.ref("blocked_users/"+uid).remove()}
+      else{await db.ref("users/"+uid+"/blocked").set(true);await db.ref("blocked_users/"+uid).set(true)}
+    }catch(err){toast("Block update failed","error")}
+  }else if(b.dataset.act==="del"){
+    if(!await askConfirm("Delete this user?",u.name||u.loginId||""))return;
+    try{await db.ref("users/"+uid).remove()}catch(err){toast("Delete failed","error")}
+  }
+};
+
+/* ---------- Daily Activity: who came on a day / who did not ---------- */
+let actDate=skYmd(),actView="came";
+const addDays=(ds,n)=>{const [y,m,d]=ds.split("-").map(Number);return skYmd(new Date(y,m-1,d+n))};
+const dayDiff=(a,b)=>{const p=s=>{const [y,m,d]=s.split("-").map(Number);return Date.UTC(y,m-1,d)};return Math.round((p(a)-p(b))/864e5)};
+const lastSeenDay=u=>u.lastSeen?skYmd(new Date(u.lastSeen)):"";
+const cameOn=(u,d)=>!!(u.days&&u.days[d])||lastSeenDay(u)===d;
+function lastActiveDay(u){let m=lastSeenDay(u);Object.keys(u.days||{}).forEach(k=>{if(k>m)m=k});return m}
+function renderActivity(){
+  if(!$("actDate"))return;
+  $("actDate").value=actDate;
+  const today=skYmd(),all=Object.entries(users),total=all.length;
+  const came=[],not=[];
+  all.forEach(([uid,u])=>(cameOn(u,actDate)?came:not).push([uid,u]));
+  const newU=all.filter(([,u])=>u.firstSeen&&skYmd(new Date(u.firstSeen))===actDate).length;
+  const pct=total?Math.round(came.length*100/total):0;
+  $("actStats").innerHTML=`<div class="stat"><b>${came.length}</b><small>Visited (${pct}%)</small></div><div class="stat"><b>${not.length}</b><small>Not visited</small></div><div class="stat"><b>${newU}</b><small>Naye users</small></div>`;
+  // last 14 days bars
+  const days=[];for(let i=13;i>=0;i--)days.push(addDays(actDate,-i));
+  const cnt=days.map(d=>all.reduce((n,[,u])=>n+(cameOn(u,d)?1:0),0)),mx=Math.max(1,...cnt);
+  $("actChart").innerHTML='<div style="display:flex;align-items:flex-end;gap:4px;height:84px">'+days.map((d,i)=>`<div data-d="${d}" title="${d}: ${cnt[i]}" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;cursor:pointer;height:100%"><small style="font-size:9px;color:var(--muted)">${cnt[i]}</small><div style="width:100%;height:${Math.max(3,Math.round(cnt[i]*60/mx))}px;border-radius:4px;background:${d===actDate?"var(--brand1)":"var(--line)"}"></div><small style="font-size:8.5px;color:var(--muted)">${d.slice(8)}</small></div>`).join("")+'</div>';
+  $("actTabCame").className="mini"+(actView==="came"?"":" secondary");
+  $("actTabNot").className="mini"+(actView==="not"?"":" secondary");
+  $("actTabCame").textContent="Visited ("+came.length+")";$("actTabNot").textContent="Not visited ("+not.length+")";
+  $("actGap").style.display=actView==="not"?"":"none";
+  const q=$("actSearch").value.trim().toLowerCase(),gap=+$("actGap").value||0;
+  let rows=(actView==="came"?came:not).filter(([,u])=>!q||((u.name||"")+" "+(u.loginId||"")).toLowerCase().includes(q));
+  const info=u=>{
+    if(actView==="came"){const t=u.lastSeen&&lastSeenDay(u)===actDate?new Date(u.lastSeen).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"";return t?"Last seen "+t:"Aaya tha"}
+    const la=lastActiveDay(u);if(!la)return "Never visited";const n=dayDiff(actDate,la);return n>0?n+" days since last visit (last: "+la+")":"Visited after this day"};
+  const gapOf=u=>{const la=lastActiveDay(u);return la?dayDiff(actDate,la):9999};
+  if(actView==="not"){rows=rows.filter(([,u])=>gapOf(u)>=gap);rows.sort((a,b)=>gapOf(a[1])-gapOf(b[1]))}
+  else rows.sort((a,b)=>new Date(b[1].lastSeen||0)-new Date(a[1].lastSeen||0));
+  $("actList").innerHTML=rows.slice(0,300).map(([uid,u])=>`<div class="admin-row" data-uid="${esc(uid)}"><div class="urow"><div class="av">${esc(initial(u.name||u.loginId))}</div><div class="meta"><b>${esc(u.name||u.loginId||"User")}</b><small>${esc(u.loginId||"")} · ${esc(info(u))}</small>${u.blocked?'<small class="tag-blocked">BLOCKED</small>':""}</div></div><div class="mini-actions"><button class="mini secondary" data-act="msg" title="Send message">${icon("chat",14)}</button></div></div>`).join("")||'<div class="empty">No users</div>';
+  if(rows.length>300)$("actList").insertAdjacentHTML("beforeend",`<div class="state">Showing the first 300 — use search or filters (${rows.length} total)</div>`);
+}
+$("actPrev").onclick=()=>{actDate=addDays(actDate,-1);renderActivity()};
+$("actNext").onclick=()=>{if(actDate<skYmd()){actDate=addDays(actDate,1);renderActivity()}};
+$("actToday").onclick=()=>{actDate=skYmd();renderActivity()};
+$("actDate").onchange=e=>{if(e.target.value&&e.target.value<=skYmd()){actDate=e.target.value;renderActivity()}else renderActivity()};
+$("actTabCame").onclick=()=>{actView="came";renderActivity()};
+$("actTabNot").onclick=()=>{actView="not";renderActivity()};
+$("actGap").onchange=renderActivity;
+$("actSearch").oninput=renderActivity;
+$("actChart").onclick=e=>{const b=e.target.closest("[data-d]");if(b){actDate=b.dataset.d;renderActivity()}};
+$("actList").onclick=e=>{const b=e.target.closest("button[data-act=msg]");if(b){const uid=b.closest("[data-uid]").dataset.uid;setTab("chat");openChat(uid)}};
+
+/* ---------- Conversations (live, newest first, unread on top) ---------- */
+const metaOf=v=>({user_name:v.user_name,last_message:v.last_message,last_sender:v.last_sender,last_timestamp:v.last_timestamp,admin_read_until:v.admin_read_until});
+const isUnread=c=>c.last_sender==="user"&&!!c.last_timestamp&&(!c.admin_read_until||c.last_timestamp>c.admin_read_until);
+function startChats(){
+  const ref=db.ref("chats");
+  setTimeout(()=>{chatsReady=true},3500); // initial burst of child_added = no "new message" toasts
+  ref.on("child_added",s=>{chatMeta[s.key]=metaOf(s.val()||{});chatsChanged()});
+  ref.on("child_changed",s=>{
+    const old=chatMeta[s.key]||{},n=metaOf(s.val()||{});chatMeta[s.key]=n;
+    if(chatsReady&&s.key!==activeUid&&isUnread(n)&&n.last_timestamp!==old.last_timestamp)toast("New message from "+(n.user_name||"User"));
+    chatsChanged();
+  });
+  ref.on("child_removed",s=>{delete chatMeta[s.key];if(activeUid===s.key)closeChat();chatsChanged()});
+}
+function chatsChanged(){
+  $("cCount").textContent=Object.keys(chatMeta).length;
+  renderChatList();try{renderDash()}catch(e){}
+}
+function renderChatList(){
+  const rows=Object.entries(chatMeta).sort((a,b)=>String(b[1].last_timestamp||"").localeCompare(String(a[1].last_timestamp||"")));
+  const unread=rows.filter(([uid,c])=>isUnread(c)&&uid!==activeUid).length;
+  const bd=$("chatBadge");bd.textContent=unread;bd.hidden=!unread;const bd2=$("chatBadge2");if(bd2){bd2.textContent=unread;bd2.hidden=!unread}
+  $("chatUsers").innerHTML=rows.map(([uid,c])=>{
+    const nm=c.user_name||users[uid]?.name||"User",un=isUnread(c)&&uid!==activeUid;
+    return `<div class="chat-user${uid===activeUid?" active":""}${un?" unread":""}" data-uid="${esc(uid)}"><div class="av">${esc(initial(nm))}</div><div class="cu-main"><div class="cu-top"><b>${esc(nm)}</b><span class="cu-time">${esc(timeAgoShort(c.last_timestamp))}</span></div><small>${c.last_message?(c.last_sender==="admin"?"You: ":"")+esc(c.last_message):"No messages"}</small></div>${un?'<i class="udot"></i>':""}</div>`;
+  }).join("")||'<div class="empty">No conversations yet</div>';
+}
+$("chatUsers").onclick=e=>{const r=e.target.closest(".chat-user");if(r)openChat(r.dataset.uid)};
+
+/* ---------- Open chat: ONE listener, always detached before switching ---------- */
+function closeChatListeners(){
+  if(chatRef&&chatHandler)chatRef.off("value",chatHandler);
+  chatRef=null;chatHandler=null;
+}
+function closeChat(){
+  closeChatListeners();activeUid=null;
+  $("chatWrap").classList.remove("show-window");
+  $("chatBox").style.display="none";$("chatEmpty").style.display="flex";
+  renderChatList();
+}
+function openChat(uid){
+  closeChatListeners();
+  activeUid=uid;const my=uid;
+  const nm=chatMeta[uid]?.user_name||users[uid]?.name||"User";
+  $("chatWrap").classList.add("show-window");
+  $("chatEmpty").style.display="none";$("chatBox").style.display="flex";
+  $("chatName").textContent=nm;$("chatAv").textContent=initial(nm);$("chatPresence").textContent="";
+  $("adminMessages").innerHTML='<div class="empty">Loading…</div>';
+  renderChatList();
+  chatRef=db.ref("chats/"+uid);
+  chatHandler=s=>{
+    if(activeUid!==my)return;            // stale event from a previous chat — ignore
+    const d=s.val()||{};
+    renderMessages(d.messages||{});
+    renderPresence(d);
+    markRead(my,d);
+  };
+  chatRef.on("value",chatHandler);
+  chatRef.child("admin_typing").onDisconnect().remove().catch(()=>{});
+  setTimeout(()=>{if(activeUid===my)$("adminText").focus()},50);
+}
+const dayLabel=t=>{const d=new Date(t),n=new Date(),y=new Date(n);y.setDate(n.getDate()-1);if(d.toDateString()===n.toDateString())return "Today";if(d.toDateString()===y.toDateString())return "Yesterday";return d.toLocaleDateString([],{day:"numeric",month:"short"})};
+function renderMessages(ms){
+  const box=$("adminMessages"),near=box.scrollHeight-box.scrollTop-box.clientHeight<120||box.querySelector(".empty");
+  const arr=Object.entries(ms).sort((a,b)=>String(a[1].timestamp).localeCompare(String(b[1].timestamp)));
+  let last=null,html="";
+  arr.forEach(([k,m])=>{
+    const dl=dayLabel(m.timestamp);if(dl!==last){html+=`<div class="date-sep">${dl}</div>`;last=dl}
+    const img=m.link_url&&isImageUrl(m.link_url)?`<img class="photo" src="${esc(m.link_url)}" loading="lazy" alt="">`:"";
+    const lnk=m.link_url&&!isImageUrl(m.link_url)?`<a href="${esc(m.link_url)}" target="_blank" rel="noopener" style="text-decoration:underline;font-size:11px">${esc(m.link_title||"Open link")}</a>`:"";
+    html+=`<div class="bubble ${m.sender==="admin"?"me":""}" data-key="${esc(k)}">${m.reply_to?`<div class="reply">${esc(m.reply_to.text||"")}</div>`:""}${img}<div>${esc(m.text||"")}</div>${lnk}<small>${new Date(m.timestamp).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</small><button class="b-del" type="button" title="Delete message" aria-label="Delete message">${icon("trash",13)}</button></div>`;
+  });
+  box.innerHTML=arr.length?html:'<div class="empty">No messages yet — say hello 👋</div>';
+  if(near)box.scrollTop=box.scrollHeight;
+}
+function renderPresence(d){
+  const typing=d.user_typing&&(Date.now()-new Date(d.user_typing).getTime()<4000);
+  $("chatPresence").innerHTML=typing?'<span class="typing-dots"><span></span><span></span><span></span></span> typing…':d.online?"Online":d.last_seen?"Last seen "+esc(new Date(d.last_seen).toLocaleString()):"";
+}
+function markRead(uid,d){
+  // guard: only write when actually unread, otherwise our own write would re-trigger this handler forever
+  if(d.last_sender==="user"&&d.last_timestamp&&(!d.admin_read_until||d.admin_read_until<d.last_timestamp)){
+    const t=new Date(Math.max(Date.now(),Date.parse(d.last_timestamp))).toISOString();
+    db.ref("chats/"+uid).update({admin_read_until:t}).catch(()=>{});
+  }
+}
+$("backToList").onclick=closeChat;
+
+/* ---------- Send / delete ---------- */
+async function sendAdmin(){
+  const uid=activeUid;if(!uid)return;            // uid is captured NOW, so a later chat switch can never redirect this message
+  const i=$("adminText"),t=i.value.trim();if(!t)return;
+  i.value="";const ts=new Date().toISOString();
+  try{
+    await db.ref("chats/"+uid+"/messages").push({sender:"admin",text:t,timestamp:ts,admin_read:false});
+    await db.ref("chats/"+uid).update({user_name:chatMeta[uid]?.user_name||users[uid]?.name||"User",last_message:t,last_sender:"admin",last_timestamp:ts,admin_typing:null});
+  }catch(e){if(activeUid===uid&&!i.value)i.value=t;toast("Message send failed","error")}
+}
+$("adminSend").onclick=sendAdmin;
+$("adminText").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendAdmin()}};
+$("adminText").oninput=()=>{
+  if(!activeUid||Date.now()-typingT<1500)return;typingT=Date.now();
+  db.ref("chats/"+activeUid+"/admin_typing").set(new Date().toISOString()).catch(()=>{});
+};
+$("adminMessages").onclick=async e=>{
+  const b=e.target.closest(".b-del");
+  if(!b){const bub=e.target.closest(".bubble");document.querySelectorAll(".bubble.sel").forEach(x=>x!==bub&&x.classList.remove("sel"));bub?.classList.toggle("sel");return}
+  const uid=activeUid,key=b.closest(".bubble").dataset.key;if(!uid||!key)return;
+  if(!await askConfirm("Delete this message?","It will also disappear for the user."))return;
+  try{
+    await db.ref("chats/"+uid+"/messages/"+key).remove();
+    await refreshChatMeta(db.ref("chats/"+uid));
+    toast("Message deleted");
+  }catch(err){toast("Delete failed","error")}
+};
+$("delChat").onclick=async()=>{
+  const uid=activeUid;if(!uid)return;
+  if(!await askConfirm("Delete this conversation?","All messages with this user will be removed."))return;
+  try{await db.ref("chats/"+uid).remove();toast("Conversation deleted")}catch(err){toast("Delete failed","error")}
+};
+
+/* ---------- Banners ---------- */
+$("bannerForm").onsubmit=async e=>{
+  e.preventDefault();
+  try{
+    let url=$("bannerUrl").value.trim();
+    const f=$("bannerFile").files[0];
+    if(f){
+      url=await uploadImg(f);
+    }
+    if(!url)throw new Error("Image URL/file required");
+    if(!/^https?:\/\//i.test(url))throw new Error("Image URL must start with https:// or http://");
+    await withTimeout(db.ref("banners").push({image:url,title:$("bannerTitle").value.trim(),subtitle:$("bannerSub").value.trim(),createdAt:new Date().toISOString()}),10000);
+    toast("Banner added");e.target.reset();renderBanners();
+  }catch(err){toast(err.message,"error")}
+};
+async function renderBanners(){
+  const s=await safe(()=>db.ref("banners").once("value"),null);
+  const d=s?.val()||{};
+  $("bannerList").innerHTML=Object.entries(d).map(([id,x])=>`<div class="admin-row" data-id="${esc(id)}"><div class="urow"><img src="${esc(x.image)}" style="width:88px;height:50px;object-fit:cover;border-radius:8px" loading="lazy" alt="" onerror="this.style.opacity='.35';this.title='Image URL failed to load'"><b>${esc(x.title||"Banner")}</b></div><button class="mini danger" data-act="delb">${icon("trash",14)}</button></div>`).join("")||'<div class="empty">No banners</div>';
+}
+$("bannerList").onclick=async e=>{
+  const b=e.target.closest("[data-act=delb]");if(!b)return;
+  try{await db.ref("banners/"+b.closest("[data-id]").dataset.id).remove();renderBanners()}catch(err){toast("Delete failed","error")}
+};
+
+/* ---------- Website brand logo ---------- */
+const brandLogoFile=$("brandLogoFile"),brandLogoUrl=$("brandLogoUrl"),brandLogoPreview=$("brandLogoPreview");
+brandLogoFile.addEventListener("change",()=>{const f=brandLogoFile.files&&brandLogoFile.files[0];if(f){if(f.size>10*1024*1024){toast("Image must be smaller than 10 MB","error");brandLogoFile.value="";return}brandLogoPreview.src=URL.createObjectURL(f)}});
+brandLogoUrl.addEventListener("input",()=>{if(/^https?:\/\//i.test(brandLogoUrl.value.trim()))brandLogoPreview.src=brandLogoUrl.value.trim()});
+async function loadBrandLogo(){const snap=await safe(()=>db.ref("settings/siteLogo").once("value"),null);const v=snap&&snap.val();if(v&&v.url){brandLogoUrl.value=v.url;brandLogoPreview.src=v.url}}
+$("brandLogoForm").onsubmit=async e=>{e.preventDefault();const btn=e.target.querySelector('button[type="submit"]');btn.disabled=true;try{let url=brandLogoUrl.value.trim();const f=brandLogoFile.files&&brandLogoFile.files[0];if(f)url=await uploadImg(f);if(!/^https?:\/\//i.test(url))throw new Error("Choose a logo image or enter a valid https URL");await withTimeout(db.ref("settings/siteLogo").set({url,updatedAt:new Date().toISOString()}),10000);brandLogoUrl.value=url;brandLogoPreview.src=url;toast("Website logo saved. Refresh the home page.")}catch(err){toast(err.message||"Logo save failed","error")}finally{btn.disabled=false}};
+$("brandLogoReset").onclick=async()=>{try{await withTimeout(db.ref("settings/siteLogo").remove(),8000);brandLogoUrl.value="";brandLogoFile.value="";brandLogoPreview.src="icons/logo-96.png";toast("Default logo restored")}catch(err){toast(err.message||"Could not reset logo","error")}};
+loadBrandLogo();
+
+/* ---------- Analysis ---------- */
+async function loadRatings(){
+  const rs=await safe(()=>db.ref("ratings").once("value"),null);
+  ratingData=rs?.val()||{};
+  const list=Object.values(ratingData).sort((a,b)=>String(b.timestamp||"").localeCompare(String(a.timestamp||"")));
+  $("rCount").textContent=list.length;
+  const avg=list.length?list.reduce((a,x)=>a+(Number(x.stars)||0),0)/list.length:0;
+  $("avgRating").textContent=list.length?"· avg "+avg.toFixed(1)+" ★":"";
+  $("ratings").innerHTML=list.map(x=>`<div class="admin-row"><div><b>${esc(x.userName||"User")} <span style="color:#f5b301">${"★".repeat(Number(x.stars)||0)}</span></b><small style="display:block;color:var(--muted)">${esc(x.review||"No review")}</small></div></div>`).join("")||'<div class="empty">No ratings yet</div>';
+}
+
+/* ---------- Settings ---------- */
+async function loadSettings(){
+  const s=await safe(()=>db.ref("settings").once("value"),null);
+  if(!s){$("maintBtn").textContent="⚠️ Status could not be loaded — tap to check";return}
+  const d=s.val()||{};
+  $("domain").value=d.domain||"";
+  $("maintReason").value=d.maintenance?.reason||"";
+  $("maintBtn").textContent=maintLabel(!!d.maintenance?.enabled);
+}
+function maintLabel(on){return on?"✅ Turn website ON (users currently see the maintenance screen)":"⛔ Turn website OFF (start maintenance)"}
+$("settingsForm").onsubmit=async e=>{
+  e.preventDefault();
+  try{
+    const cur=(await withTimeout(db.ref("settings/maintenance").once("value"),7000)).val()||{};
+    await withTimeout(db.ref("settings/domain").set($("domain").value.trim()),7000);
+    await withTimeout(db.ref("settings/maintenance").set({enabled:!!cur.enabled,reason:$("maintReason").value.trim()}),7000);
+    toast("Settings saved");
+  }catch(err){toast("Settings save failed","error")}
+};
+$("maintBtn").onclick=async()=>{
+  try{
+    const cur=(await withTimeout(db.ref("settings/maintenance").once("value"),7000)).val()||{};
+    const on=!cur.enabled;
+    if(!confirm(on?"Turn the website OFF? All users will see the maintenance screen.":"Turn the website back ON?"))return;
+    await withTimeout(db.ref("settings/maintenance").set({enabled:on,reason:$("maintReason").value.trim()}),7000);
+    $("maintBtn").textContent=maintLabel(on);
+    toast(on?"Website OFF":"Website ON");
+  }catch(err){toast("Maintenance update failed","error")}
+};
+
+
+/* ---------- Accounts: admin ID/password banata ya reset karta hai ---------- */
+$("accGen").onclick=()=>{
+  const L="abcdefghjkmnpqrstuvwxyz",D="23456789",r=new Uint32Array(8);crypto.getRandomValues(r);
+  let p="";for(let i=0;i<5;i++)p+=L[r[i]%L.length];for(let i=5;i<8;i++)p+=D[r[i]%D.length];
+  $("accPw").value=p;
+};
+$("accPublic").onclick=()=>{$("accId").value="sk_0012";if(!$("accName").value)$("accName").value="SK Student";$("accPw").focus()};
+$("accForm").onsubmit=async e=>{
+  e.preventDefault();
+  const id=$("accId").value.trim(),pw=$("accPw").value,name=$("accName").value.trim();
+  const idErr=idIssue(id);if(idErr){toast(idErr,"error");return}
+  if(pw.length<6){toast("Password must be at least 6 characters","error");return}
+  const btn=$("accBtn");btn.disabled=true;btn.textContent="Working...";
+  try{
+    const ref=accountsRef(id),old=(await withTimeout(ref.once("value"),12000)).val(),now=new Date().toISOString(),rec=await makePasswordRecord(pw);
+    if(old)await withTimeout(ref.update({...rec,name:name||old.name||id,passwordResetAt:now,passwordResetBy:"admin"}),12000);
+    else await withTimeout(ref.set({name:name||id,userId:id,contact:"admin-created",...rec,createdAt:now,createdBy:"admin"}),12000);
+    $("accOut").innerHTML=`<div class="admin-row" style="display:block;margin-top:12px;border-left:4px solid #34B47C"><b>${old?"✅ Password reset":"✅ New account created"}</b><small style="display:block;margin-top:6px;color:var(--muted);line-height:1.7">ID: <b style="color:var(--text)">${esc(id)}</b><br>Password: <b style="color:var(--text)">${esc(pw)}</b></small><button type="button" class="secondary" id="accCopy" style="margin-top:8px;width:auto">📋 Copy ID + Password</button></div>`;
+    $("accCopy").onclick=async()=>{try{await navigator.clipboard.writeText("SK Education\nUser ID: "+id+"\nPassword: "+pw);toast("Copied")}catch(x){toast("Could not copy","error")}};
+    $("accPw").value="";
+  }catch(err){
+    console.error("Account save:",err);
+    toast(/permission/i.test(String(err&&err.message))?"❌ Firebase rules blocked the write (accounts)":"❌ Could not save the account: "+(err&&err.message||"error"),"error");
+  }finally{btn.disabled=false;btn.textContent="Create account / Reset password"}
+};
+
+/* ---------- Courses: Class 12 batch management + thumbnails ---------- */
+let admBatches={},admThumbs={},admPdfs=[];
+const batchForm=$("batchForm");
+function resetBatchForm(){batchForm.reset();$("batchEditId").value="";$("batchIcon").value="📚";$("batchSave").textContent="Add Batch";$("batchCancel").hidden=true}
+$("batchCancel").onclick=resetBatchForm;
+batchForm.onsubmit=async e=>{
+  e.preventDefault();
+  const id=$("batchEditId").value.trim(),name=$("batchName").value.trim(),icon=$("batchIcon").value.trim()||"📚",image=$("batchImage").value.trim(),description=$("batchDescription").value.trim(),access=$("batchAccess").value;
+  if(!name){toast("Enter a batch name","error");return}
+  if(image&&!/^https?:\/\//i.test(image)){toast("Thumbnail must be an http(s) URL","error");return}
+  const payload={name,icon,image,description,access,updatedAt:new Date().toISOString()};
+  const btn=$("batchSave");btn.disabled=true;
+  try{
+    if(id) await withTimeout(db.ref("batches/"+id).update(payload),10000);
+    else {payload.createdAt=new Date().toISOString();await withTimeout(db.ref("batches").push(payload),10000)}
+    resetBatchForm();try{SKData.clear()}catch(x){};await loadCourses();toast(id?"Batch updated ✓":"Batch added ✓");
+  }catch(err){toast(err.message||"Could not save batch","error")}
+  finally{btn.disabled=false}
+};
+// Bulk batch import: accepts an array or { batches: [...] } JSON.
+const bulkFile=$("batchBulkFile"),bulkJson=$("batchBulkJson"),bulkStatus=$("batchBulkStatus");
+bulkFile.addEventListener("change",async()=>{const f=bulkFile.files&&bulkFile.files[0];if(!f)return;if(f.size>1024*1024){toast("JSON file must be under 1 MB","error");bulkFile.value="";return}try{bulkJson.value=await f.text();bulkStatus.textContent="Loaded "+f.name+". Review it, then tap Upload batches."}catch(e){toast("Could not read JSON file","error")}});
+$("batchBulkClear").onclick=()=>{bulkFile.value="";bulkJson.value="";bulkStatus.textContent=""};
+$("batchBulkUpload").onclick=async()=>{
+  const btn=$("batchBulkUpload");let list;
+  try{const parsed=JSON.parse(bulkJson.value.trim());list=Array.isArray(parsed)?parsed:parsed&&Array.isArray(parsed.batches)?parsed.batches:null;if(!list||!list.length)throw new Error("JSON must be a non-empty array of batch objects");if(list.length>100)throw new Error("Maximum 100 batches per upload");
+    list=list.map((b,i)=>{if(!b||typeof b!=="object"||Array.isArray(b))throw new Error("Batch "+(i+1)+" must be an object");const name=String(b.name||b.title||"").trim();if(!name)throw new Error("Batch "+(i+1)+" is missing name");const image=String(b.image||"").trim();if(image&&!/^https?:\/\//i.test(image))throw new Error("Invalid image URL in batch: "+name);return {name:name.slice(0,90),icon:String(b.icon||"📚").slice(0,8),image,description:String(b.description||"").slice(0,240),access:b.access==="paid"?"paid":"free",createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()}});
+  }catch(err){toast(err.message||"Invalid JSON","error");return}
+  if(!await askConfirm("Upload "+list.length+" batches?","These will be added to educationqpp. Existing batches will remain.","Upload batches",{kind:"info"}))return;
+  btn.disabled=true;bulkStatus.textContent="Uploading 0 / "+list.length+"…";let ok=0;
+  try{for(const b of list){await withTimeout(db.ref("batches").push(b),12000);ok++;bulkStatus.textContent="Uploading "+ok+" / "+list.length+"…"}try{SKData.clear()}catch(e){}await loadCourses();toast(ok+" batches uploaded ✓");bulkStatus.textContent="Success: "+ok+" batches added.";bulkJson.value="";bulkFile.value=""}
+  catch(err){bulkStatus.textContent="Uploaded "+ok+" of "+list.length+". Error: "+(err.message||"unknown");toast("Upload stopped after "+ok+": "+(err.message||"error"),"error")}finally{btn.disabled=false}
+};
+
+const SUBJ_ICONS=()=>Object.entries(CATEGORIES);
+async function loadCourses(){
+  $("courseGrid").innerHTML='<div class="skel" style="height:200px"></div>';
+  try{
+    const [b,p,t]=await Promise.all([SKData.batches(),SKData.pdfs().catch(()=>[]),safe(()=>db.ref("settings/courseThumbs").once("value"),null)]);
+    admBatches=b||{};admPdfs=p||[];admThumbs=(t&&t.val())||{};
+  }catch(e){$("courseGrid").innerHTML='<div class="empty">Could not load courses — check Settings / your internet connection.</div>';return}
+  renderCourses();
+}
+function renderCourses(){
+  const ids=Object.keys(admBatches);
+  $("courseGrid").innerHTML=ids.map(id=>{
+    const b=admBatches[id],th=(admThumbs[id]&&admThumbs[id].url)||b.image||APP_LOGO;
+    const rows=admPdfs.filter(x=>x.b===String(id));
+    const subj=SUBJ_ICONS().map(([k,v])=>{const r=rows.filter(x=>x.c===k),c={pdf:0,video:0,dpp:0};r.forEach(x=>c[matKind(x)]++);return `<div class="srow"><span>${CATEGORY_ICONS[k]} ${esc(v)}</span><span>📄 ${c.pdf} · 🎥 ${c.video} · 📝 ${c.dpp}</span></div>`}).join("");
+    return `<article class="acard" data-id="${esc(id)}"><div class="thumb"><img src="${esc(th)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${APP_LOGO}';this.classList.add('fb')"></div><div class="abody2"><h3>${esc(b.icon||"📚")} ${esc(b.name||"Course")}</h3><div class="meta">${rows.length} materials${admThumbs[id]&&admThumbs[id].url?" · custom thumbnail":""}</div>
+<div class="thumb-url"><input type="url" placeholder="Thumbnail image URL" value="${esc((admThumbs[id]&&admThumbs[id].url)||"")}" data-f="url"></div>
+<div class="btn-row"><button type="button" class="secondary mini" data-act="editbatch">Edit batch</button><button type="button" class="danger mini" data-act="deletebatch">Delete</button></div><div class="btn-row"><label class="secondary mini" style="display:flex;align-items:center;justify-content:center;cursor:pointer">📷 Upload<input type="file" accept="image/*" data-f="file" hidden></label><button type="button" class="primary mini" data-act="saveth">Save thumbnail</button><button type="button" class="secondary mini" data-act="resetth">Reset</button></div>
+<details><summary>Subjects (PDF / Video / DPP)</summary>${subj}</details></div></article>`}).join("")||'<div class="empty">No courses found</div>';
+}
+$("courseGrid").onclick=async e=>{
+  const btn=e.target.closest("[data-act]");if(!btn)return;
+  const card=btn.closest(".acard"),id=card.dataset.id,inp=card.querySelector('[data-f=url]'),act=btn.dataset.act;
+  if(act==="editbatch"){
+    const b=admBatches[id]||{};$("batchEditId").value=id;$("batchName").value=b.name||"";$("batchIcon").value=b.icon||"📚";$("batchImage").value=b.image||"";$("batchDescription").value=b.description||"";$("batchAccess").value=b.access||"free";$("batchSave").textContent="Save changes";$("batchCancel").hidden=false;$("batchForm").scrollIntoView({behavior:"smooth",block:"start"});return;
+  }
+  if(act==="deletebatch"){
+    const b=admBatches[id]||{};if(!await askConfirm("Delete this batch?","The batch record will be removed. Existing PDF records linked to it are not automatically deleted.","Delete batch",{kind:"warn"}))return;
+    btn.disabled=true;try{await withTimeout(db.ref("batches/"+id).remove(),10000);try{SKData.clear()}catch(x){};await loadCourses();toast("Batch deleted")}catch(err){toast(err.message||"Delete failed","error")}finally{btn.disabled=false}return;
+  }
+  btn.disabled=true;
+  try{
+    if(act==="saveth"){
+      const url=inp.value.trim();if(!/^https?:\/\//i.test(url))throw new Error("Enter a valid image URL");
+      await withTimeout(db.ref("settings/courseThumbs/"+id).set({url,updatedAt:new Date().toISOString()}),8000);
+      admThumbs[id]={url};toast("Thumbnail saved");
+    }else{
+      await withTimeout(db.ref("settings/courseThumbs/"+id).remove(),8000);
+      delete admThumbs[id];toast("Restore original thumbnail");
+    }
+    try{SKData.clear()}catch(x){}
+    renderCourses();
+  }catch(err){toast(err.message||"Save failed","error");btn.disabled=false}
+};
+$("courseGrid").addEventListener("change",async e=>{
+  const f=e.target.closest("[data-f=file]");if(!f||!f.files[0])return;
+  const card=f.closest(".acard"),file=f.files[0];
+  if(file.size>10*1024*1024){toast("Image must be smaller than 10 MB","error");return}
+  toast("Uploading...");
+  try{
+    const url=await uploadImg(file);
+    card.querySelector("[data-f=url]").value=url;card.querySelector(".thumb img").src=url;
+    toast("Uploaded — now press Save");
+  }catch(err){toast(err.message,"error")}
+});
+
+/* ---------- Enrollments (grouped by course) ---------- */
+let enrAll={};
+async function loadEnroll(){
+  $("enrList").innerHTML='<div class="skel"></div>';
+  const [s,b]=await Promise.all([safe(()=>db.ref("enrollments").once("value"),null,12000),SKData.batches().catch(()=>({}))]);
+  if(!s){$("enrList").innerHTML='<div class="empty">Could not load enrollments</div>';return}
+  enrAll=s.val()||{};admBatches=b||admBatches;renderEnroll();
+}
+function renderEnroll(){
+  const q=($("enrSearch").value||"").trim().toLowerCase(),groups={};
+  Object.entries(enrAll).forEach(([uid,list])=>Object.values(list||{}).forEach(x=>{
+    const u=users[uid]||{},who=(u.name||u.loginId||uid);
+    const key=x.batchId;(groups[key]=groups[key]||{name:x.name||(admBatches[key]&&admBatches[key].name)||"Course",icon:x.icon||"📚",rows:[]}).rows.push({uid,who,login:u.loginId||"",at:x.createdAt||""});
+  }));
+  const html=Object.entries(groups).map(([id,g])=>{
+    const rows=g.rows.filter(r=>!q||(r.who+" "+r.login+" "+g.name).toLowerCase().includes(q)).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+    if(!rows.length)return "";
+    return `<details class="enr-group" ${q?"open":""}><summary><b>${esc(g.icon)} ${esc(g.name)}</b><span class="cnt">${rows.length} students</span></summary><div class="enr-users">${rows.map(r=>`<div class="enr-user"><div class="who"><b>${esc(r.who)}</b><small>${esc(r.login)}${r.at?" · "+esc(new Date(r.at).toLocaleDateString()):""}</small></div><button type="button" class="danger mini" data-uid="${esc(r.uid)}" data-bid="${esc(id)}">Remove</button></div>`).join("")}</div></details>`}).join("");
+  $("enrList").innerHTML=html||'<div class="empty">No enrollments found</div>';
+}
+$("enrSearch").oninput=()=>renderEnroll();
+$("enrList").onclick=async e=>{
+  const b=e.target.closest("[data-uid]");if(!b)return;
+  if(!await askConfirm("Remove enrollment?","The student's enrollment in this course will be removed.","Remove"))return;
+  try{
+    const cat="10",uid=b.dataset.uid,bid=b.dataset.bid;
+    const list=enrAll[uid]||{};
+    const key=Object.keys(list).find(k=>String(list[k].batchId)===String(bid))||(cat+"_"+bid);
+    await withTimeout(db.ref("enrollments/"+uid+"/"+key).remove(),8000);
+    delete list[key];renderEnroll();toast("Removed");
+  }catch(err){toast("Remove failed","error")}
+};
+
+/* ---------- Dashboard ---------- */
+const modData={modApks:{},modSites:{},tests:{}};
+function renderDash(){
+  if(!$("dashGrid"))return;
+  const today=skYmd(),all=Object.values(users);
+  const came=all.filter(u=>cameOn(u,today)).length,fresh=all.filter(u=>u.firstSeen&&skYmd(new Date(u.firstSeen))===today).length;
+  const unread=Object.entries(chatMeta).filter(([,c])=>isUnread(c)).length;
+  const live=o=>Object.values(o).filter(x=>x.active!==false).length;
+  const cards=[["users","users","Total users",all.length],["activity","calendar","Visited today",came],["users","user","New today",fresh],["chat","chat","Unread chats",unread],["tests","test","Tests",live(modData.tests)],["modapks","android","Mod APKs",live(modData.modApks)],["modsites","globe","Mod Websites",live(modData.modSites)]];
+  $("dashGrid").innerHTML=cards.map(([t,i,l,n])=>`<div class="stat" data-go="${t}"><div class="si">${icon(i,20)}</div><div><b>${n}</b><small>${l}</small></div></div>`).join("");
+  document.querySelectorAll("[data-go]").forEach(b=>{if(b.tagName==="BUTTON"&&!b.dataset.ok){b.dataset.ok=1;const m={modapks:["plus","Add Mod APK"],modsites:["plus","Add Mod Website"],chat:["chat","Open chats"]}[b.dataset.go];if(m)b.innerHTML=icon(m[0],16)+" "+m[1]}});
+  const exp=+sessionStorage.getItem("sk_admin_exp")||0,left=Math.max(0,Math.round((exp-Date.now())/60000));
+  $("secStatus").innerHTML="🔐 Admin login is verified on the server (the password is not stored in the browser or database).<br>⏱️ Session expires in "+(left>=60?Math.floor(left/60)+" hours "+left%60+" min":left+" min")+".<br>🚫 5 wrong attempts lock the login for 15 minutes and send a Telegram alert.";
+}
+document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g)setTab(g.dataset.go)});
+
+/* ---------- Mod APKs & Mod Websites (educationqpp: modApks/*, modSites/*) ---------- */
+const MODCFG={modApks:{p:"apk",img:"icon",extra:{Ver:"version",Size:"size"},title:"Mod APK"},modSites:{p:"site",img:"logo",extra:{},title:"Website"}};
+const modEdit={modApks:null,modSites:null};
+function modReset(node){
+  const c=MODCFG[node],p=c.p,g=k=>$(p+k);
+  modEdit[node]=null;g("Form").reset();g("Prev").src=APP_LOGO;g("Cancel").hidden=true;
+  g("FormTitle").textContent="Add "+c.title;g("Save").textContent="Upload "+c.title;
+}
+async function modLoad(node){
+  const s=await safe(()=>db.ref(node).once("value"),null,12000);
+  if(!s){$(MODCFG[node].p+"List").innerHTML='<div class="empty">Failed to load</div>';return}
+  modData[node]=s.val()||{};modRender(node);try{renderDash()}catch(e){}
+}
+function modRender(node){
+  const c=MODCFG[node],p=c.p,q=$(p+"Search").value.trim().toLowerCase();
+  const rows=Object.entries(modData[node]).filter(([,x])=>x&&x.name&&(!q||(x.name+" "+(x.about||"")).toLowerCase().includes(q)))
+   .sort((a,b)=>(b[1].pin?1:0)-(a[1].pin?1:0)||String(b[1].createdAt||"").localeCompare(String(a[1].createdAt||"")));
+  $(p+"Count").textContent="("+rows.length+")";
+  $(p+"List").innerHTML=rows.map(([id,x])=>{
+    const on=x.active!==false,sub=[x.version&&"v"+String(x.version).replace(/^v/i,""),x.size,hostOf(x.url)].filter(Boolean).join(" · ");
+    return `<div class="admin-row" data-id="${esc(id)}"><div class="mod-row${on?"":" off"}"><img src="${esc(safeUrl(x[c.img])||APP_LOGO)}" loading="lazy" alt="" onerror="this.onerror=null;this.src='${APP_LOGO}'"><div class="meta"><b>${x.pin?"★ ":""}${esc(x.name)}</b><small>${esc(sub)}${on?"":" · HIDDEN"}</small></div></div><div class="mini-actions"><button class="mini secondary" data-act="pin" title="Pin / Unpin">${icon("pin",14)}</button><button class="mini secondary" data-act="toggle" title="${on?"Hide":"Show"}" aria-label="${on?"Hide":"Show"}">${icon(on?"eye":"eyeoff",14)}</button><button class="mini secondary" data-act="edit" title="Edit">${icon("edit",14)}</button><button class="mini danger" data-act="del" title="Delete">${icon("trash",14)}</button></div></div>`;
+  }).join("")||'<div class="empty">Nothing added yet</div>';
+}
+function modInit(node){
+  const c=MODCFG[node],p=c.p,g=k=>$(p+k);
+  g("File").onchange=async()=>{
+    const f=g("File").files[0];if(!f)return;
+    try{toast("Uploading the image...");const u=await uploadImg(f);g("Img").value=u;g("Prev").src=u;toast("Image upload ho gayi ✓")}
+    catch(err){toast(err.message,"error")}
+  };
+  g("Img").oninput=()=>{g("Prev").src=safeUrl(g("Img").value)||APP_LOGO};
+  g("Cancel").onclick=()=>modReset(node);
+  g("Search").oninput=()=>modRender(node);
+  g("Form").onsubmit=async e=>{
+    e.preventDefault();
+    const name=g("Name").value.trim(),url=safeUrl(g("Url").value),img=g("Img").value.trim();
+    if(!name)return toast("Enter a name","error");
+    if(!url)return toast("Enter a valid link (https://...)","error");
+    if(node==="modSites"&&!safeUrl(img))return toast("Upload a website logo or enter its link","error");
+    if(img&&!safeUrl(img))return toast("The image link is invalid","error");
+    const o={name:name.slice(0,80),about:g("About").value.trim().slice(0,600),url,[c.img]:img?safeUrl(img):"",pin:g("Pin").checked};
+    Object.entries(c.extra).forEach(([k,f])=>o[f]=g(k).value.trim());
+    const btn=g("Save");btn.disabled=true;
+    try{
+      if(modEdit[node])await withTimeout(db.ref(node+"/"+modEdit[node]).update(o),8000);
+      else await withTimeout(db.ref(node).push(Object.assign(o,{active:true,createdAt:new Date().toISOString()})),8000);
+      try{SKData.clear()}catch(x){}
+      toast(modEdit[node]?"Updated ✓":"Uploaded ✓");modReset(node);await modLoad(node);
+    }catch(err){toast("Could not save — check the Firebase rules","error")}
+    finally{btn.disabled=false}
+  };
+  g("List").onclick=async e=>{
+    const b=e.target.closest("[data-act]");if(!b)return;
+    const id=b.closest("[data-id]").dataset.id,x=modData[node][id]||{};
+    try{
+      if(b.dataset.act==="edit"){
+        modEdit[node]=id;g("Name").value=x.name||"";g("Url").value=x.url||"";g("About").value=x.about||"";
+        g("Img").value=x[c.img]||"";g("Prev").src=safeUrl(x[c.img])||APP_LOGO;g("Pin").checked=!!x.pin;
+        Object.entries(c.extra).forEach(([k,f])=>g(k).value=x[f]||"");
+        g("FormTitle").textContent="Edit "+c.title;g("Save").textContent="Save changes";g("Cancel").hidden=false;
+        g("Form").scrollIntoView({behavior:"smooth",block:"start"});return;
+      }
+      if(b.dataset.act==="del"){
+        if(!await askConfirm("Delete this item?",x.name||""))return;
+        await withTimeout(db.ref(node+"/"+id).remove(),8000);delete modData[node][id];toast("Deleted");
+      }else{
+        const upd=b.dataset.act==="pin"?{pin:!x.pin}:{active:x.active===false};
+        await withTimeout(db.ref(node+"/"+id).update(upd),8000);Object.assign(x,upd);
+      }
+      try{SKData.clear()}catch(x2){}
+      modRender(node);renderDash();
+    }catch(err){toast("Could not update","error")}
+  };
+}
+modInit("modApks");modInit("modSites");
+
+/* ---------- whole-quiz time (minutes): quick chips fill the number box ---------- */
+document.querySelectorAll(".dur-chips").forEach(box=>box.onclick=e=>{const b=e.target.closest("button[data-v]");if(!b)return;$(box.dataset.for).value=b.dataset.v});
+const readDur=id=>{const raw=$(id).value.trim();if(!raw)return 0;const n=Math.round(+raw);return n>=1&&n<=600?n:null};
+const subOpts=(cls,sub,sel,none)=>(none===false?"":'<option value="">'+(none||"None")+'</option>')+tsSubsOf(cls,sub).map(x=>`<option value="${esc(x[0])}"${x[0]===sel?" selected":""}>${esc(x[1])}</option>`).join("");
+
+/* ---------- Test Series (testMeta/<id> + testQs/<id>) ---------- */
+let tsParsed=null,tsEdit=null,tsReps={},modSeries={};const tsSel=new Set();
+const tsLabel=c=>(TS_CLASSES[c]||{label:"Class "+c}).label,tsSubjectsOf=c=>(TS_CLASSES[c]||{subjects:[]}).subjects;
+const tsSubCats=(sel)=>{const c=$("tsCls").value,sb=$("tsSub").value,has=tsSubsOf(c,sb).length>0;$("tsSubCatF").hidden=!has;$("tsSubCat").innerHTML=has?subOpts(c,sb,sel,"None (no subcategory)"):""};
+const tsSubs=()=>{const c=$("tsCls").value;$("tsSub").innerHTML=tsSubjectsOf(c).map(s=>`<option value="${s[0]}">${s[2]} ${esc(s[1])}</option>`).join("");tsSubCats()};
+$("tsCls").onchange=tsSubs;$("tsSub").onchange=()=>tsSubCats();tsSubs();
+function tsPreview(){
+  const box=$("tsPrev"),sv=$("tsSave");
+  if(!tsParsed){box.innerHTML="";sv.disabled=!tsEdit;return}
+  const r=tsParsed,q=r.questions.slice(0,2);
+  box.innerHTML=`<div class="page-card" style="background:var(--surface2)"><b style="color:var(--success)">✅ ${r.questions.length} questions mil gaye</b>${r.source?` <span class="mpill">${esc(r.source)}</span>`:""}${r.total!==r.questions.length?` <span style="color:var(--danger)">(${r.total-r.questions.length} skip)</span>`:""}${r.note?`<div class="field-hint">${esc(r.note)}</div>`:""}
+  ${r.warnings.length?`<div class="field-hint" style="color:var(--danger)">${r.warnings.slice(0,5).map(esc).join("<br>")}${r.warnings.length>5?"<br>...":""}</div>`:""}
+  <div style="margin-top:10px;font-size:12.5px">${q.map((x,i)=>`<div style="margin-bottom:10px"><b>Q${i+1}. ${quizRich(x.q)}</b>${x.o.map((t,k)=>`<div style="padding:2px 0;${k===x.a?"color:var(--success);font-weight:700":"color:var(--muted)"}">${"ABCDEF"[k]}. ${quizRich(t)}${k===x.a?" ✓":""}</div>`).join("")}</div>`).join("")}</div></div>`;
+  sv.disabled=false;
+}
+async function tsRead(){
+  const f=$("tsFile").files[0],pasted=($("tsPaste").value||"").trim();tsParsed=null;
+  if(f||pasted){
+    try{
+      if(f&&f.size>5*1024*1024)throw new Error("File is larger than 5 MB");
+      tsParsed=parseQuizFile(f?await f.text():pasted,f?f.name:"paste.txt",$("tsBase").value);
+    }catch(e){$("tsPrev").innerHTML=`<div class="page-card" style="background:var(--danger-bg);color:var(--danger)">❌ ${esc(e.message)}</div>`;$("tsSave").disabled=true;return}
+  }
+  tsPreview();
+}
+let tsPT=0;$("tsFile").onchange=tsRead;$("tsBase").onchange=tsRead;$("tsPaste").oninput=()=>{clearTimeout(tsPT);tsPT=setTimeout(tsRead,500)};
+$("tsTpl").onclick=()=>{
+  const t=[{question:"What is the speed of light in a vacuum?",options:["3 x 10^8 m/s","3 x 10^6 m/s","3 x 10^5 m/s","3 x 10^10 m/s"],answer:"A",explanation:"The speed of light in a vacuum is 3 x 10^8 m/s."},{question:"What is the capital of Bihar?",options:["Gaya","Patna","Ranchi","Muzaffarpur"],answer:2},{question:"What is H2O commonly called?",options:["Salt","Water","Oil","Air"],correct_option_id:1}];
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(t,null,2)],{type:"application/json"}));a.download="test-series-sample.json";a.click();
+};
+function tsReset(){tsEdit=null;tsParsed=null;$("tsForm").reset();tsSubs();$("tsPrev").innerHTML="";$("tsSave").disabled=true;$("tsSave").textContent="Upload Test";$("tsFormTitle").textContent="Test Series upload";$("tsCancel").hidden=true}
+$("tsCancel").onclick=tsReset;
+$("tsForm").onsubmit=async e=>{
+  e.preventDefault();
+  const cls=$("tsCls").value,subject=$("tsSub").value,subcat=$("tsSubCatF").hidden?"":$("tsSubCat").value,chapter=$("tsChap").value.trim(),dur=readDur("tsDur");
+  if(!chapter)return toast("Enter the chapter name","error");
+  if(dur===null)return toast("Enter the quiz time in minutes (1 to 600)","error");
+  if(!tsEdit&&!tsParsed)return toast("Choose a questions file or paste the questions","error");
+  const btn=$("tsSave");btn.disabled=true;
+  try{
+    const id=tsEdit||testDb.ref("testMeta").push().key,old=modData.tests[id]||{};
+    const count=tsParsed?tsParsed.questions.length:old.count;
+    const meta=Object.assign({},old,{cls,subject,sub:subcat||null,chapter:chapter.slice(0,90),count,perQ:null,duration:dur||Math.max(5,count),active:old.active!==false,createdAt:old.createdAt||new Date().toISOString()});
+    const up={};up["testMeta/"+id]=meta;if(tsParsed)up["testQs/"+id]=tsParsed.questions;
+    await withTimeout(testDb.ref().update(up),30000);
+    if(!subcat)delete meta.sub;
+    try{SKData.clear()}catch(x){}
+    toast(tsEdit?"Test updated ✓":"Test uploaded ✓ ("+count+" questions)");tsReset();await tsLoad();
+  }catch(err){console.error("Test upload:",err);const m=String(err&&err.message||err);toast(/permission/i.test(m)?"Upload failed — Firebase rules blocked the write (testQs/testMeta)":/timed out/i.test(m)?"Upload failed — slow network, please try again":"Upload failed: "+m.slice(0,80),"error");btn.disabled=false}
+};
+async function tsLoad(){
+  try{const ss=await safe(()=>testDb.ref("testSeries").once("value"),null,10000);if(ss){modSeries=ss.val()||{};tsApplySeries(modSeries);srFillSelects();srRender()}}catch(e){}
+  const s=await safe(()=>testDb.ref("testMeta").once("value"),null,12000);
+  if(!s){$("tsList").innerHTML='<div class="empty">Failed to load</div>';return}
+  modData.tests=s.val()||{};tsRender();try{renderDash()}catch(e){}repLoad();
+}
+function tsFiltered(){
+  const f=$("tsFilter").value,fs=$("tsFilterSub").value,q=$("tsSearch").value.trim().toLowerCase();
+  return Object.entries(modData.tests).filter(([,t])=>t&&t.chapter&&(!f||t.cls===f)&&(!fs||t.subject===fs)&&(!q||t.chapter.toLowerCase().includes(q))).sort((a,b)=>String(b[1].createdAt||"").localeCompare(String(a[1].createdAt||"")));
+}
+function tsSubFilterFill(){
+  const f=$("tsFilter").value,cur=$("tsFilterSub").value,seen={},list=[];
+  (f?[f]:Object.keys(TS_CLASSES)).forEach(c=>tsSubjectsOf(c).forEach(s=>{if(!seen[s[0]]){seen[s[0]]=1;list.push(s)}}));
+  $("tsFilterSub").innerHTML='<option value="">All subjects</option>'+list.map(s=>`<option value="${s[0]}">${s[2]} ${s[1]}</option>`).join("");
+  $("tsFilterSub").value=list.some(s=>s[0]===cur)?cur:"";
+}
+function tsSelUpdate(){
+  const rows=tsFiltered(),n=[...tsSel].filter(id=>modData.tests[id]).length,inView=rows.filter(([id])=>tsSel.has(id)).length;
+  $("tsSelN").textContent=n?n+" selected":"";$("tsDelSel").disabled=!n;$("tsDelSel").textContent=n?"🗑 Delete selected ("+n+")":"🗑 Delete selected";
+  $("tsAll").checked=!!rows.length&&inView===rows.length;$("tsAll").indeterminate=inView>0&&inView<rows.length;
+}
+function tsRender(){
+  const rows=tsFiltered();
+  $("tsCount").textContent="("+rows.length+")";
+  $("tsList").innerHTML=rows.map(([id,t])=>{const sb=tsSubject(t.cls,t.subject),on=t.active!==false,rc=tsReps[id]?Object.keys(tsReps[id]).length:0;
+    return `<div class="admin-row" data-id="${esc(id)}"><div class="mod-row${on?"":" off"}"><input type="checkbox" class="ts-sel" ${tsSel.has(id)?"checked":""}><div style="width:46px;height:46px;border-radius:12px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${sb[2]}</div><div class="meta"><b>${esc(t.chapter)}</b><small>${esc(tsLabel(t.cls))} • ${esc(sb[1])}${t.sub&&tsSubName(t.cls,t.subject,t.sub)?" › "+esc(tsSubName(t.cls,t.subject,t.sub)):""} • ${t.count} Q • ${durOf(t,t.count)} min${on?"":" · HIDDEN"}${rc?" · ⚠️ "+rc:""}</small></div></div><div class="mini-actions"><button class="mini secondary" data-act="toggle" title="${on?"Hide":"Show"}">${icon(on?"eye":"eyeoff",14)}</button><button class="mini secondary" data-act="edit" title="Edit / replace file">${icon("edit",14)}</button><button class="mini secondary" data-act="board" title="Leaderboard reset">${icon("trophy",14)}</button><button class="mini danger" data-act="del" title="Delete">${icon("trash",14)}</button></div></div>`}).join("")||'<div class="empty">No tests</div>';
+  tsSelUpdate();
+}
+$("tsFilter").onchange=()=>{tsSubFilterFill();tsRender()};$("tsFilterSub").onchange=tsRender;$("tsSearch").oninput=tsRender;tsSubFilterFill();
+$("tsList").addEventListener("change",e=>{
+  if(!e.target.classList.contains("ts-sel"))return;
+  const id=e.target.closest("[data-id]").dataset.id;e.target.checked?tsSel.add(id):tsSel.delete(id);tsSelUpdate();
+});
+$("tsAll").onchange=e=>{tsFiltered().forEach(([id])=>e.target.checked?tsSel.add(id):tsSel.delete(id));tsRender()};
+$("tsDelSel").onclick=async()=>{
+  const ids=[...tsSel].filter(id=>modData.tests[id]);if(!ids.length)return;
+  if(!await askConfirm("Delete "+ids.length+" test"+(ids.length>1?"s":"")+"?","Questions and leaderboard scores will be removed. Question reports stay until you resolve them.","Delete"))return;
+  const btn=$("tsDelSel");btn.disabled=true;let done=0;
+  try{
+    for(let i=0;i<ids.length;i+=20){
+      const up={};ids.slice(i,i+20).forEach(id=>{up["testMeta/"+id]=null;up["testQs/"+id]=null;up["testBoard/"+id]=null});
+      await withTimeout(testDb.ref().update(up),20000);
+      ids.slice(i,i+20).forEach(id=>{delete modData.tests[id];tsSel.delete(id);done++});
+    }
+    toast(done+" test delete ho gaye ✓");
+  }catch(err){console.error("Bulk delete:",err);toast((done?done+" deleted, the rest failed":"Could not delete")+(/permission/i.test(String(err&&err.message))?" — Firebase rules":""),"error")}
+  try{SKData.clear()}catch(x){}
+  tsRender();repRender();try{renderDash()}catch(x){}
+};
+$("tsList").onclick=async e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const id=b.closest("[data-id]").dataset.id,t=modData.tests[id]||{};
+  try{
+    if(b.dataset.act==="edit"){
+      bkMode("single");tsEdit=id;tsParsed=null;$("tsCls").value=t.cls;tsSubs();$("tsSub").value=t.subject;tsSubCats(t.sub);$("tsChap").value=t.chapter;$("tsDur").value=t.duration||"";
+      $("tsFormTitle").textContent="Edit test";$("tsSave").textContent="Save changes";$("tsSave").disabled=false;$("tsCancel").hidden=false;
+      $("tsPrev").innerHTML="";$("tsForm").scrollIntoView({behavior:"smooth"});return;
+    }
+    if(b.dataset.act==="del"){
+      if(!await askConfirm("Delete this test?",(t.chapter||"")+" — questions and leaderboard scores will be removed. Question reports stay until you resolve them.","Delete"))return;
+      await withTimeout(testDb.ref().update({["testMeta/"+id]:null,["testQs/"+id]:null,["testBoard/"+id]:null}),10000);delete modData.tests[id];tsSel.delete(id);toast("Deleted");
+    }else if(b.dataset.act==="board"){
+      if(!await askConfirm("Reset leaderboard?","All scores of this test will be removed.","Reset"))return;
+      await withTimeout(testDb.ref("testBoard/"+id).remove(),8000);toast("Leaderboard reset ✓");return;
+    }else{
+      const u={active:t.active===false};await withTimeout(testDb.ref("testMeta/"+id).update(u),8000);Object.assign(t,u);
+    }
+    try{SKData.clear()}catch(x){}
+    tsRender();renderDash();
+  }catch(err){toast("Could not update","error")}
+};
+
+/* ---------- Subcategories manager: testSeries/<series>/subjects[n].subs = [{key,name}] ---------- */
+function srSerialize(k){
+  const c=TS_CLASSES[k],old=modSeries[k]||{},built=!!TS_BUILTIN[k],o={label:c.label,tag:c.tag||"",createdAt:old.createdAt||(built?"":new Date().toISOString()),
+    subjects:c.subjects.map(x=>({key:x[0],name:x[1],emoji:x[2],color:x[3],subs:(x[4]||[]).map(y=>({key:y[0],name:y[1]}))}))};
+  if(!built||old.color)o.color=old.color||(c.grad.match(/#[0-9a-f]{6}/i)||["#5B7CFA"])[0];
+  if(!built||old.emoji)o.emoji=old.emoji||c.emoji||"📚";
+  return o;
+}
+const ctSubjects=()=>tsSubjectsOf($("ctCls").value);
+function ctFillSub(){
+  const cur=$("ctSub").value,list=ctSubjects();
+  $("ctSub").innerHTML=list.map(s=>`<option value="${esc(s[0])}">${s[2]} ${esc(s[1])}</option>`).join("");
+  if(list.some(s=>s[0]===cur))$("ctSub").value=cur;
+}
+function ctRender(){
+  const k=$("ctCls").value,sk=$("ctSub").value,subs=tsSubsOf(k,sk);
+  $("ctList").innerHTML=subs.map(x=>{const n=Object.values(modData.tests).filter(t=>t&&t.cls===k&&t.subject===sk&&t.sub===x[0]).length;
+    return `<div class="admin-row" data-k="${esc(x[0])}"><div class="mod-row"><div class="cat-dot">${esc(String(x[1]).charAt(0).toUpperCase())}</div><div class="meta"><b>${esc(x[1])}</b><small>${n} test${n===1?"":"s"}</small></div></div><div class="mini-actions"><button class="mini danger" data-act="del" type="button" title="Delete subcategory" aria-label="Delete subcategory">${icon("trash",14)}</button></div></div>`}).join("")||'<div class="empty">No subcategories in this subject yet</div>';
+}
+async function ctPersist(k){
+  const data=srSerialize(k);
+  await withTimeout(testDb.ref("testSeries/"+k).set(data),10000);
+  modSeries[k]=data;tsApplySeries({[k]:data});try{SKData.clear()}catch(x){}
+}
+$("ctCls").onchange=()=>{ctFillSub();ctRender()};$("ctSub").onchange=ctRender;
+$("ctForm").onsubmit=async e=>{
+  e.preventDefault();
+  const k=$("ctCls").value,sk=$("ctSub").value,subj=TS_CLASSES[k]&&TS_CLASSES[k].subjects.find(x=>x[0]===sk);
+  if(!subj)return toast("Select a category and a subject first","error");
+  const have=(subj[4]||[]).slice(),names=$("ctName").value.split(/[,\n]+/).map(x=>x.trim().slice(0,30)).filter(Boolean);
+  if(!names.length)return;
+  let added=0;
+  names.forEach(nm=>{
+    if(have.some(x=>x[1].toLowerCase()===nm.toLowerCase()))return;
+    let key=nm.toLowerCase().replace(/[^a-z0-9]+/g,"")||("c"+Date.now().toString(36)+added);
+    if(key==="_")key="c_"+added;while(have.some(x=>x[0]===key))key+="x";
+    have.push([key,nm]);added++;
+  });
+  if(!added)return toast("Those subcategories already exist","error");
+  const prevSubs=subj[4];subj[4]=have;$("ctAdd").disabled=true;
+  try{await ctPersist(k);$("ctName").value="";toast(added+" subcategor"+(added>1?"ies":"y")+" added ✓")}
+  catch(err){subj[4]=prevSubs;toast(/permission/i.test(String(err&&err.message))?"Firebase rules blocked the write (testSeries)":"Could not save","error")}
+  $("ctAdd").disabled=false;ctFillSub();ctRender();srRender();
+};
+$("ctList").onclick=async e=>{
+  const b=e.target.closest("[data-act=del]");if(!b)return;
+  const k=$("ctCls").value,sk=$("ctSub").value,subj=TS_CLASSES[k]&&TS_CLASSES[k].subjects.find(x=>x[0]===sk),key=b.closest("[data-k]").dataset.k;
+  if(!subj)return;
+  const sub=(subj[4]||[]).find(x=>x[0]===key);if(!sub)return;
+  const n=Object.values(modData.tests).filter(t=>t&&t.cls===k&&t.subject===sk&&t.sub===key).length;
+  if(!await askConfirm("Delete subcategory \""+sub[1]+"\"?",n?n+" test"+(n>1?"s":"")+" will stay in the subject and appear under \"Other tests\".":"This subcategory has no tests.","Delete"))return;
+  const prevSubs=subj[4];subj[4]=prevSubs.filter(x=>x[0]!==key);
+  try{await ctPersist(k);toast("Subcategory deleted ✓")}catch(err){subj[4]=prevSubs;toast("Could not delete","error")}
+  ctRender();srRender();
+};
+
+/* ---------- Series manager (testSeries/<id>) ---------- */
+const SR_PAL=["#5B7CFA","#F5A524","#34B47C","#EC4899","#F97316","#06B6D4","#8B5CF6","#EF4444"];
+let srEdit=null;
+function srFillSelects(){
+  const opts=Object.keys(TS_CLASSES).map(k=>`<option value="${esc(k)}">${esc(TS_CLASSES[k].label)}</option>`).join("");
+  const keep=(id,extra)=>{const el=$(id),v=el.value;el.innerHTML=(extra||"")+opts;el.value=[...el.options].some(o=>o.value===v)?v:(extra?"":(el.options[0]||{}).value||"")};
+  keep("tsCls");keep("bkCls");keep("tsFilter",'<option value="">All series</option>');
+  keep("ctCls");tsSubs();bkFillSub();tsSubFilterFill();ctFillSub();ctRender();
+}
+function srParse(text,old){
+  const used=new Set(),out=[];
+  String(text).split(/[,\n]+/).map(x=>x.trim()).filter(Boolean).forEach((raw,i)=>{
+    const m=raw.match(/^((?:\p{Extended_Pictographic}\uFE0F?(?:\u200D\p{Extended_Pictographic}\uFE0F?)*)+)\s*(.*)$/u),name=(m?m[2]:raw).trim();
+    if(!name)return;
+    const prev=old.find(s=>s[1].toLowerCase()===name.toLowerCase());
+    let key=prev?prev[0]:(name.toLowerCase().replace(/[^a-z0-9]+/g,"")||"s"+(i+1));
+    while(used.has(key))key+="x";used.add(key);
+    out.push({key,name:name.slice(0,30),emoji:m?m[1]:(prev?prev[2]:"📝"),color:prev?prev[3]:SR_PAL[out.length%SR_PAL.length],subs:prev?(prev[4]||[]).map(x=>({key:x[0],name:x[1]})):[]});
+  });
+  return out.slice(0,24);
+}
+function srReset(){srEdit=null;$("srForm").reset();$("srColor").value="#5B7CFA";$("srTitle").textContent="🗂 Add series";$("srSave").textContent="Add series";$("srCancel").hidden=true}
+function srRender(){
+  const keys=Object.keys(TS_CLASSES);$("srCount").textContent="("+keys.length+")";
+  $("srList").innerHTML=keys.map(k=>{
+    const c=TS_CLASSES[k],n=Object.values(modData.tests).filter(t=>t&&t.cls===k).length,col=(c.grad.match(/#[0-9a-f]{6}/i)||["#5B7CFA"])[0];
+    return `<div class="admin-row" data-k="${esc(k)}"><div class="mod-row"><div style="width:46px;height:46px;border-radius:12px;background:${c.grad};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;color:#fff;font-weight:800">${c.custom?esc(c.emoji||"📚"):esc(k)}</div><div class="meta"><b>${esc(c.label)}</b><small>${c.subjects.length} subjects • ${n} tests${c.custom?"":" • Default"}</small></div></div><div class="mini-actions"><button class="mini secondary" data-act="edit" title="Edit">${icon("edit",14)}</button><button class="mini danger" data-act="del" title="Delete">${icon("trash",14)}</button></div></div>`}).join("")||'<div class="empty">No series</div>';
+}
+$("srForm").onsubmit=async e=>{
+  e.preventDefault();
+  const label=$("srName").value.trim(),subs=srParse($("srSubs").value,srEdit&&TS_CLASSES[srEdit]?TS_CLASSES[srEdit].subjects:[]);
+  if(!label||!subs.length)return toast("Enter a name and subjects","error");
+  const id=srEdit||testDb.ref("testSeries").push().key,old=modSeries[id]||{};
+  const data={label:label.slice(0,40),tag:$("srTag").value.trim().slice(0,50),emoji:($("srEmoji").value.trim()||"📚").slice(0,4),color:$("srColor").value,subjects:subs,createdAt:old.createdAt||new Date().toISOString()};
+  $("srSave").disabled=true;
+  try{
+    await withTimeout(testDb.ref("testSeries/"+id).set(data),10000);
+    modSeries[id]=data;tsApplySeries({[id]:data});try{SKData.clear()}catch(x){}
+    toast(srEdit?"Series updated ✓":"Series added ✓");srReset();srFillSelects();srRender();tsRender();
+  }catch(err){toast(/permission/i.test(String(err&&err.message))?"Firebase rules blocked the write":"Could not save","error")}
+  $("srSave").disabled=false;
+};
+$("srCancel").onclick=srReset;
+$("srList").onclick=async e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const k=b.closest("[data-k]").dataset.k,c=TS_CLASSES[k];if(!c)return;
+  if(b.dataset.act==="edit"){
+    srEdit=k;$("srName").value=c.label;$("srTag").value=c.tag||"";$("srEmoji").value=c.emoji||"";$("srColor").value=(c.grad.match(/#[0-9a-f]{6}/i)||["#5B7CFA"])[0];
+    $("srSubs").value=c.subjects.map(s=>s[2]+" "+s[1]).join(", ");$("srTitle").textContent="✏️ Edit series";$("srSave").textContent="Save changes";$("srCancel").hidden=false;
+    $("srForm").scrollIntoView({behavior:"smooth",block:"center"});return;
+  }
+  const ids=Object.keys(modData.tests).filter(id=>modData.tests[id]&&modData.tests[id].cls===k);
+  if(!await askConfirm("Delete "+c.label+"?",ids.length+" test"+(ids.length===1?"":"s")+" will be deleted too. Question reports stay until you resolve them.","Delete"))return;
+  try{
+    for(let i=0;i<ids.length;i+=20){
+      const up={};ids.slice(i,i+20).forEach(id=>{up["testMeta/"+id]=null;up["testQs/"+id]=null;up["testBoard/"+id]=null});
+      await withTimeout(testDb.ref().update(up),20000);
+      ids.slice(i,i+20).forEach(id=>{delete modData.tests[id];tsSel.delete(id)});
+    }
+    if(TS_BUILTIN[k]){await withTimeout(testDb.ref("testSeries/"+k).set({deleted:true}),10000);modSeries[k]={deleted:true}}
+    else{await withTimeout(testDb.ref("testSeries/"+k).remove(),10000);delete modSeries[k]}
+    delete TS_CLASSES[k];if(srEdit===k)srReset();try{SKData.clear()}catch(x){}
+    toast("Series deleted ✓");srFillSelects();srRender();tsRender();repRender();try{renderDash()}catch(x){}
+  }catch(err){toast("Could not delete","error")}
+};
+
+/* ---------- Question reports (testReports/<testId>/<reportId>) ---------- */
+const REP_T={wrong_question:"Wrong question",wrong_option:"Wrong option",formatting:"Formatting issue",other:"Other"};
+async function repLoad(){
+  const s=await safe(()=>testDb.ref("testReports").once("value"),null,12000);
+  if(!s){$("repList").innerHTML='<div class="empty">Could not load reports</div>';return}
+  tsReps=s.val()||{};repRender();tsRender();
+}
+function repRender(){
+  const ft=$("repFilter")?$("repFilter").value:"";
+  const ids=Object.keys(tsReps).filter(id=>tsReps[id]&&Object.keys(tsReps[id]).length);
+  const total=ids.reduce((a,id)=>a+Object.keys(tsReps[id]).length,0);
+  $("repCount").textContent=total?"("+total+")":"";
+  const bd=$("repBadge");if(bd){bd.textContent=total>99?"99+":total;bd.hidden=!total}
+  const L="ABCDEF";
+  $("repList").innerHTML=ids.map(id=>{
+    const t=modData.tests[id],all=Object.entries(tsReps[id]).sort((a,b)=>(b[1].at||0)-(a[1].at||0)),items=all.filter(([,r])=>!ft||r.type===ft);
+    if(!items.length)return"";
+    const f=all[0][1]||{},sb=t?tsSubject(t.cls,t.subject):null;
+    const title=t?t.chapter:(f.test||"Deleted test"),where=t?tsLabel(t.cls)+" • "+sb[1]:[f.clsLabel,f.subjectLabel].filter(Boolean).join(" • ");
+    return `<div class="rep-group" data-t="${esc(id)}"><div class="rep-h"><div class="meta"><b>${esc(title)}${t?"":' <span class="mpill r">Test deleted</span>'}</b><small>${esc(where)}${where?" • ":""}${items.length} report${items.length>1?"s":""}</small></div><button class="mini danger" data-act="clear" type="button">Resolve all</button></div>
+    ${items.map(([rid,r])=>`<div class="rep-item" data-r="${esc(rid)}"><div class="rep-top"><span class="mpill ${r.type==="wrong_question"||r.type==="wrong_option"?"r":"y"}">${esc(REP_T[r.type]||r.type||"")}</span><small>Q${(+r.qi||0)+1} • ${esc(r.name||"User")} • ${r.at?esc(new Date(r.at).toLocaleDateString()):""}</small></div><div class="rep-q">${quizRich(r.q||"")}</div>${Array.isArray(r.opts)?`<div class="rep-opts">${r.opts.map((o,k)=>`<div class="${k===r.a?"ok":""}"><b>${L[k]}</b> ${quizRich(o)}${k===r.a?" ✓":""}</div>`).join("")}</div>`:""}${r.note?`<div class="rep-note">${esc(r.note)}</div>`:""}<button class="mini secondary" data-act="ok" type="button">✓ Resolved</button></div>`).join("")}</div>`}).join("")||'<div class="empty">No reports</div>';
+}
+$("repReload").onclick=repLoad;$("repFilter").onchange=repRender;
+$("repList").onclick=async e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const g=b.closest("[data-t]"),tid=g.dataset.t;
+  try{
+    if(b.dataset.act==="ok"){const rid=b.closest("[data-r]").dataset.r;await withTimeout(testDb.ref("testReports/"+tid+"/"+rid).remove(),8000);delete tsReps[tid][rid]}
+    else{if(!await askConfirm("Resolve all reports of this test?","They will be removed from the list.","Resolve all",{kind:"warn"}))return;await withTimeout(testDb.ref("testReports/"+tid).remove(),8000);delete tsReps[tid]}
+    repRender();tsRender();
+  }catch(err){toast("Could not update","error")}
+};
+
+/* ---------- Bulk add: kai files -> many tests in one click (testMeta/<id> + testQs/<id>) ---------- */
+const BK_KW=[["physics",/phys|bhautik|भौतिक/i],["chemistry",/chem|rasayan|रसायन/i],["biology",/bio|jeev|जीव/i],["sanskrit",/sanskrit|sanskrt|संस्कृत/i],["hindi",/hindi|हिन्दी|हिंदी/i],["english",/engl/i],["math",/math|ganit|गणित/i]];
+let bkItems=[],bkBusy=false;
+const bkSubOpts=sel=>tsSubjectsOf($("bkCls").value).map(s=>`<option value="${s[0]}"${s[0]===sel?" selected":""}>${s[2]} ${s[1]}</option>`).join("");
+function bkDetect(name){const subs=tsSubjectsOf($("bkCls").value).map(s=>s[0]);for(const [k,re] of BK_KW)if(re.test(name)&&subs.includes(k))return k;return null}
+function bkChapter(fn){
+  let n=fn.replace(/\.[a-z0-9]+$/i,"").replace(/[_]+/g," ").replace(/\b(no ?images?|with ?images?|final|copy|new)\b/gi," ");
+  for(const [,re] of BK_KW)n=n.replace(new RegExp("^\\s*(?:"+re.source+")[a-z]*[\\s\\-:.]*","i"),"");
+  n=n.replace(/\s+/g," ").trim().replace(/^ch(?:apter)?[\s.\-]*(\d+)(?:\s*[-:]\s*|\s+)?(.*)$/i,(m,d,rest)=>"Chapter "+d+(rest.trim()?" - "+rest.trim():""));
+  return (n||fn.replace(/\.[a-z0-9]+$/i,"")).trim().slice(0,90);
+}
+const bkKey=(c,s,ch,sc)=>c+"|"+s+"|"+(sc||"")+"|"+String(ch||"").trim().toLowerCase();
+function bkFind(cls,sub,ch,sc){const k=bkKey(cls,sub,ch,sc);for(const [id,t] of Object.entries(modData.tests))if(t&&bkKey(t.cls,t.subject,t.chapter,t.sub)===k)return {id,t};return null}
+function bkState(it){
+  if(it.state==="done")return ["g","✅ uploaded"];
+  if(it.state==="up")return ["","⏳ uploading..."];
+  if(it.state==="fail")return ["r","❌ "+(it.msg||"fail")];
+  if(it.err)return ["r","❌ "+it.err];
+  const ch=it.chapter.trim();if(!ch)return ["r","⚠ enter a chapter name"];
+  const k=bkKey($("bkCls").value,it.subject,ch,it.sc);
+  if(bkItems.some(x=>x!==it&&!x.err&&x.state!=="done"&&bkKey($("bkCls").value,x.subject,x.chapter,x.sc)===k&&bkItems.indexOf(x)<bkItems.indexOf(it)))return ["r","⚠ same chapter appears twice in the list — rename one"];
+  const ex=bkFind($("bkCls").value,it.subject,ch,it.sc);
+  if(ex)return $("bkReplace").checked?["y","🔄 will replace"]:["","⏭ skip (already exists)"];
+  return ["g","✨ new"];
+}
+const bkReady=it=>!it.err&&it.state!=="done"&&it.state!=="up"&&(bkState(it)[1].startsWith("✨")||bkState(it)[1].startsWith("🔄")||it.state==="fail");
+function bkPaint(it){
+  const row=$("bkList").querySelector(`[data-i="${bkItems.indexOf(it)}"]`);if(!row)return;
+  const st=bkState(it),b=row.querySelector(".bk-st");if(b){b.className="mpill bk-st "+st[0];b.textContent=st[1]}
+  row.classList.toggle("bad",st[0]==="r"&&!!it.err);row.classList.toggle("done",it.state==="done");
+  bkFooter();
+}
+function bkFooter(){
+  const n=bkItems.filter(bkReady).length;
+  $("bkGo").disabled=bkBusy||!n;$("bkGo").textContent=bkBusy?"⏳ Uploading...":(n?"⬆ Upload "+n+" test"+(n>1?"s":""):"⬆ Upload all");
+  $("bkClear").disabled=bkBusy||!bkItems.length;
+}
+function bkRender(){
+  $("bkList").innerHTML=bkItems.map((it,i)=>{
+    const q=it.parsed?it.parsed.questions[0]:null,st=bkState(it);
+    return `<div class="bk-row${it.err?" bad":""}" data-i="${i}"><div class="bk-top"><div class="bk-fn">📄 ${esc(it.name)}</div><button type="button" class="mini danger" data-act="rm" title="Remove" aria-label="Remove">✕</button></div>
+    ${it.err?`<div class="bk-err">${esc(it.err)}</div>`:`<input class="bk-ch" value="${esc(it.chapter)}" maxlength="90" placeholder="Chapter name" ${bkBusy?"disabled":""}>
+    <div class="bk-meta"><select class="bk-sb" aria-label="Subject">${bkSubOpts(it.subject)}</select>${tsSubsOf($("bkCls").value,it.subject).length?`<select class="bk-sc" aria-label="Subcategory">${subOpts($("bkCls").value,it.subject,it.sc,"No subcategory")}</select>`:""}<span class="mpill g">${it.parsed.questions.length} Q</span>${it.parsed.total!==it.parsed.questions.length?`<span class="mpill y">${it.parsed.total-it.parsed.questions.length} skip</span>`:""}<span class="mpill bk-st ${st[0]}">${esc(st[1])}</span></div>
+    <details class="bk-prev"><summary>Preview</summary>${q?`<div style="font-size:12.5px;margin-top:6px"><b>${quizRich(q.q)}</b>${q.o.map((t,k)=>`<div style="padding:2px 0;${k===q.a?"color:var(--success);font-weight:700":"color:var(--muted)"}">${"ABCDEF"[k]}. ${quizRich(t)}${k===q.a?" ✓":""}</div>`).join("")}</div>`:""}${it.parsed.warnings.length?`<div class="field-hint" style="color:var(--danger)">${it.parsed.warnings.slice(0,4).map(esc).join("<br>")}${it.parsed.warnings.length>4?"<br>...":""}</div>`:""}</details>`}</div>`}).join("");
+  bkFooter();
+}
+function bkMode(m){
+  $("tsBulkCard").style.display=m==="bulk"?"":"none";$("tsSingleCard").style.display=m==="single"?"":"none";
+  $("tsSeriesCard").style.display=$("srListCard").style.display=m==="series"?"":"none";$("tsCatCard").style.display=m==="cats"?"":"none";if(m==="cats"){ctFillSub();ctRender()}
+  document.querySelectorAll("#tsMode button").forEach(b=>b.classList.toggle("on",b.dataset.m===m));
+}
+$("tsMode").onclick=e=>{const b=e.target.closest("button[data-m]");if(b)bkMode(b.dataset.m)};
+const bkFillSubCat=()=>{const c=$("bkCls").value,sb=$("bkSub").value,has=tsSubsOf(c,sb).length>0;$("bkSubCatF").hidden=!has;$("bkSubCat").innerHTML=has?subOpts(c,sb,"","None (no subcategory)"):""};
+const bkFillSub=()=>{const c=$("bkCls").value;$("bkSub").innerHTML=tsSubjectsOf(c).map(s=>`<option value="${s[0]}">${s[2]} ${esc(s[1])}</option>`).join("");bkFillSubCat()};
+bkFillSub();
+const bkDefSc=it=>{const l=tsSubsOf($("bkCls").value,it.subject);return l.some(x=>x[0]===$("bkSubCat").value)&&!$("bkSubCatF").hidden?$("bkSubCat").value:""};
+$("bkCls").onchange=()=>{bkFillSub();bkItems.forEach(it=>{it.det=bkDetect(it.name);it.subject=it.det||$("bkSub").value;it.sc=bkDefSc(it)});bkRender()};
+$("bkSub").onchange=()=>{bkFillSubCat();bkItems.forEach(it=>{if(!it.det&&!it.manual)it.subject=$("bkSub").value;if(!it.scManual)it.sc=bkDefSc(it)});bkRender()};
+$("bkSubCat").onchange=()=>{bkItems.forEach(it=>{if(!it.scManual)it.sc=bkDefSc(it)});bkRender()};
+$("bkReplace").onchange=()=>bkItems.forEach(bkPaint);
+async function bkAdd(files){
+  files=[...files].filter(f=>f&&f.name);if(!files.length)return;
+  if(!Object.keys(modData.tests).length)await tsLoad();
+  files.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:"base"}));
+  $("bkGo").disabled=true;$("bkGo").textContent="⏳ Reading files...";
+  for(const f of files){
+    if(bkItems.some(x=>x.name===f.name&&x.size===f.size))continue;
+    const it={name:f.name,size:f.size,det:bkDetect(f.name),manual:false,state:"",chapter:bkChapter(f.name)};
+    it.subject=it.det||$("bkSub").value;it.sc=bkDefSc(it);
+    try{
+      if(f.size>5*1024*1024)throw new Error("File is larger than 5 MB");
+      it.parsed=parseQuizFile(await f.text(),f.name,"auto");
+    }catch(e){it.err=String(e&&e.message||e).slice(0,160)}
+    bkItems.push(it);
+  }
+  bkRender();
+  const ok=bkItems.filter(x=>!x.err).length,bad=bkItems.length-ok;
+  toast(ok+" file ready"+(bad?" • "+bad+" had no questions":""),bad&&!ok?"error":undefined);
+}
+$("bkFiles").onchange=async e=>{await bkAdd(e.target.files);e.target.value=""};
+const bkDrop=$("bkDrop");
+["dragenter","dragover"].forEach(ev=>bkDrop.addEventListener(ev,e=>{e.preventDefault();bkDrop.classList.add("on")}));
+["dragleave","drop"].forEach(ev=>bkDrop.addEventListener(ev,e=>{e.preventDefault();bkDrop.classList.remove("on")}));
+bkDrop.addEventListener("drop",e=>bkAdd(e.dataTransfer.files));
+$("bkList").addEventListener("input",e=>{
+  const row=e.target.closest(".bk-row");if(!row||!e.target.classList.contains("bk-ch"))return;
+  bkItems[+row.dataset.i].chapter=e.target.value;bkItems.forEach(bkPaint);
+});
+$("bkList").addEventListener("change",e=>{
+  const row=e.target.closest(".bk-row");if(!row)return;
+  const it=bkItems[+row.dataset.i];
+  if(e.target.classList.contains("bk-sb")){it.subject=e.target.value;it.manual=true;it.sc=bkDefSc(it);it.scManual=false;bkRender()}
+  else if(e.target.classList.contains("bk-sc")){it.sc=e.target.value;it.scManual=true;bkItems.forEach(bkPaint)}
+});
+$("bkList").addEventListener("click",e=>{
+  const b=e.target.closest("[data-act=rm]");if(!b||bkBusy)return;
+  bkItems.splice(+b.closest(".bk-row").dataset.i,1);bkRender();
+});
+$("bkClear").onclick=()=>{if(bkBusy)return;bkItems=[];bkRender();$("bkProg").hidden=true};
+$("bkForm").onsubmit=async e=>{
+  e.preventDefault();if(bkBusy)return;
+  const todo=bkItems.filter(bkReady);if(!todo.length)return;
+  const cls=$("bkCls").value,dur=readDur("bkDur"),base=Date.now(),prog=$("bkProg");
+  if(dur===null)return toast("Enter the quiz time in minutes (1 to 600)","error");
+  bkBusy=true;prog.hidden=false;prog.firstElementChild.style.width="0%";bkRender();
+  let ok=0,fail=0,fresh=0;
+  for(let n=0;n<todo.length;n++){
+    const it=todo[n];it.state="up";bkPaint(it);
+    try{
+      const ch=it.chapter.trim().slice(0,90),ex=bkFind(cls,it.subject,ch,it.sc),id=ex?ex.id:testDb.ref("testMeta").push().key,old=ex?ex.t:{};
+      const count=it.parsed.questions.length,duration=dur||Math.max(5,count);
+      const meta=Object.assign({},old,{cls,subject:it.subject,sub:it.sc||null,chapter:ch,count,perQ:null,duration,active:old.active!==false,createdAt:old.createdAt||new Date(base-(fresh++)*1000).toISOString()});
+      const up={};up["testMeta/"+id]=meta;up["testQs/"+id]=it.parsed.questions;
+      try{await withTimeout(testDb.ref().update(up),30000)}
+      catch(er){if(/timed out/i.test(String(er&&er.message)))await withTimeout(testDb.ref().update(up),30000);else throw er}
+      if(!meta.sub)delete meta.sub;modData.tests[id]=meta;it.state="done";ok++;
+    }catch(err){
+      console.error("Bulk upload:",err);const m=String(err&&err.message||err);
+      it.state="fail";it.msg=/permission/i.test(m)?"Firebase rules blocked the write":/timed out/i.test(m)?"slow network — please try again":m.slice(0,70);fail++;
+    }
+    bkPaint(it);prog.firstElementChild.style.width=Math.round((n+1)/todo.length*100)+"%";
+  }
+  bkBusy=false;try{SKData.clear()}catch(x){}
+  tsRender();try{renderDash()}catch(x){}
+  bkItems=bkItems.filter(x=>x.state!=="done");bkRender();
+  setTimeout(()=>{if(!bkBusy)prog.hidden=true},1500);
+  toast(ok+" test upload ho gaye ✓"+(fail?" • "+fail+" failed (see the list)":""),fail&&!ok?"error":undefined);
+  tsLoad();
+};
+
+/* ---------- Telegram join popup settings (settings/joinPopup/main) ---------- */
+async function loadJoinPopup(){
+  const s=await safe(()=>db.ref("settings/joinPopup/main").once("value"),null,10000),v=(s&&s.val())||{};
+  $("jpOn").checked=v.enabled!==false;$("jpUrl").value=v.url||"https://t.me/disha_online_classes_free_pdf";$("jpTitle").value=v.title||"";$("jpText").value=v.text||"";
+}
+$("jpForm").onsubmit=async e=>{
+  e.preventDefault();const url=safeUrl($("jpUrl").value);
+  if(!url)return toast("Enter a valid Telegram link","error");
+  try{await withTimeout(db.ref("settings/joinPopup/main").set({enabled:$("jpOn").checked,url,title:$("jpTitle").value.trim().slice(0,60),text:$("jpText").value.trim().slice(0,160)}),8000);try{SKData.clear()}catch(x){}toast("Popup saved ✓")}
+  catch(err){toast("Could not save","error")}
+};
+
+/* auto-open only after everything above (all let/const) is initialised — token is verified by the server */
+(async()=>{
+  const t=tok();if(!t)return;
+  try{const r=await fetch("/api/admin-verify",{headers:{"x-admin-token":t},cache:"no-store"});const j=await r.json();
+    if(r.ok&&j.ok){sessionStorage.setItem("sk_admin_exp",String(j.exp));openAdmin();return}}catch(e){}
+  ["sk_admin","sk_admin_token","sk_admin_exp"].forEach(k=>sessionStorage.removeItem(k));
+})();
+});
+</script></body></html>
