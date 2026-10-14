@@ -10,14 +10,14 @@ export default async function handler(req, res) {
     const userName = String(body.userName || 'User').slice(0,100);
     const messageText = String(body.messageText || '').slice(0,3500);
     if (type === 'photo' && body.photoUrl) {
-      const caption = `📚 SK Education • Class 12th\n\n💬 New Photo\n👤 ${userName}`;
+      const caption = `📚 SK Education • Class 10th\n\n💬 New Photo\n👤 ${userName}`;
       const form = new URLSearchParams({chat_id: chatId, photo: String(body.photoUrl), caption});
       const r = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:form});
       const j = await r.json();
       if (!r.ok || !j.ok) return res.status(502).json({ok:false,error:j?.description||'Telegram photo send failed'});
       return res.status(200).json({ok:true,result:j.result});
     }
-    const text = `📚 SK Education • Class 12th\n\n💬 New Message\n👤 ${userName}\n\n${messageText}`;
+    const text = `📚 SK Education • Class 10th\n\n💬 New Message\n👤 ${userName}\n\n${messageText}`;
     const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text,...(process.env.SITE_URL?{reply_markup:{inline_keyboard:[[{text:'Open admin panel',web_app:{url:process.env.SITE_URL.replace(/\/$/,'')+'/ss.html'}}]]}}:{})})});
     const j = await r.json();
     if (!r.ok || !j.ok) return res.status(502).json({ok:false,error:j?.description||'Telegram send failed'});
