@@ -3,9 +3,9 @@
    - CSS/JS/icons: instant from cache, refreshed in the background (stale-while-revalidate)
    - Firebase SDK (gstatic, versioned): cache-first
    - Firebase REST data + /api: never touched here (data.js has its own cache) */
-const CACHE = "sk-education-v24";
+const CACHE = "sk-education-v23";
 const CORE = [
-  "./", "index.html", "control.html", "login.html", "signup.html", "courses.html", "my-courses.html", "profile.html", "chat.html", "mod-apks.html", "mod-websites.html", "site-view.html", "test-series.html", "test-play.html", "quiz-parser.js", "ts.js",
+  "./", "index.html", "login.html", "signup.html", "courses.html", "my-courses.html", "profile.html", "chat.html", "mod-apks.html", "mod-websites.html", "site-view.html", "test-series.html", "test-play.html", "quiz-parser.js", "ts.js",
   "style.css", "data.js", "config.js", "nav.js", "tg.js", "manifest.json",
   "icons/icon-192.png", "icons/logo-96.png"
 ];
@@ -43,7 +43,7 @@ self.addEventListener("fetch", event => {
   const isHTML = req.mode === "navigate" || /\.(html?|js|css)$/.test(url.pathname) || url.pathname.endsWith("/");
   if (isHTML) {
     // Network first. Only if THIS exact page is cached do we give up waiting after 2.5s.
-    // We never answer a different page (e.g. index.html) for control.html / error-handler.html.
+    // We never answer a different page (e.g. index.html) for ss.html / error-handler.html.
     event.respondWith(
       caches.match(req).then(hit => {
         const net = fetch(req).then(r => { if (r && r.status === 200) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); } return r; });

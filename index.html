@@ -1,24 +1,18 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>SK Education</title>
-<meta name="theme-color" content="#0B0E15"><meta name="description" content="SK Education - free study material, courses and support chat."><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://educationqpp-default-rtdb.firebaseio.com" crossorigin><link rel="preconnect" href="https://testing-5ce76-default-rtdb.firebaseio.com" crossorigin><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"><script src="tg.js"></script><script src="data.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script defer src="config.js"></script><script defer src="nav.js"></script></head>
-<body><div class="app"><header class="topbar"><div class="brand"><img class="site-brand-logo" src="icons/logo-96.png" width="30" height="30" alt="SK" onerror="this.onerror=null;this.src='icons/icon-192.png'"><span>SK Education</span></div><button class="icon-btn menu-btn" onclick="openDrawer()">☰</button></header>
+<meta name="theme-color" content="#0B0E15"><meta name="description" content="SK Education - free study material, courses and support chat."><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://educationqpp-default-rtdb.firebaseio.com" crossorigin><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"><script src="tg.js"></script><script src="data.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script defer src="config.js"></script><script defer src="nav.js"></script></head>
+<body><div class="app"><header class="topbar"><div class="brand"><img src="icons/logo-96.png" width="30" height="30" alt="SK" onerror="this.onerror=null;this.src='icons/icon-192.png'"><span>SK Education</span></div><button class="icon-btn menu-btn" onclick="openDrawer()">☰</button></header>
 <main class="content"><div class="hello" id="hello"></div><section class="banner"><div class="banner-track" id="bannerTrack"><div class="banner-slide skel"></div></div><div class="dots" id="bannerDots"></div></section>
 <div class="section-head"><h2>Courses</h2><a href="courses.html">All courses →</a></div><div class="course-row" id="courseRow"><div class="skel-row"><div class="skel"></div><div class="skel"></div></div></div>
 <div class="section-head"><h2>Quick Access</h2></div><div class="six-grid" id="quickGrid"></div>
 <div class="big-welcome">WELCOME TO SK EDUCATION<span>Free EDUCATION MATERIAL</span></div><div class="footer-credit"><b>SK Education</b>Made with ❤️ by Satendra Kumar</div></main>
 <nav class="bottom-nav"><button class="nav-item active" onclick="nav('index.html')"><span>⌂</span>HOME</button><button class="nav-item" onclick="nav('my-courses.html')"><span>▣</span>MY COURSES</button><button type="button" class="nav-item" onclick="nav('test-series.html')"><span>✎</span>TEST SERIES</button><button class="nav-item" onclick="nav('chat.html')"><span>💬</span>CHAT</button><button class="nav-item" onclick="nav('profile.html')"><span>●</span>PROFILE</button></nav></div>
-<div class="drawer-back" id="drawerBack" onclick="if(event.target===this)closeDrawer()"><aside class="drawer"><div class="drawer-head"><img class="site-brand-logo" src="icons/logo-96.png" width="44" height="44" alt="SK" onerror="this.onerror=null;this.src='icons/icon-192.png'"><div><h2>SK EDUCATION</h2><small>by Satendra Kumar</small></div></div><div class="drawer-section">Account</div>
+<div class="drawer-back" id="drawerBack" onclick="if(event.target===this)closeDrawer()"><aside class="drawer"><div class="drawer-head"><img src="icons/logo-96.png" width="44" height="44" alt="SK" onerror="this.onerror=null;this.src='icons/icon-192.png'"><div><h2>SK EDUCATION</h2><small>by Satendra Kumar</small></div></div><div class="drawer-section">Account</div>
 <button class="drawer-link" onclick="closeDrawer()"><i data-icon="home"></i><b>Home</b></button><button class="drawer-link" onclick="nav('courses.html')"><i data-icon="grid"></i><b>All Courses</b></button><button class="drawer-link" onclick="nav('my-courses.html')"><i data-icon="enrolled"></i><b>Enrolled Courses</b></button><button class="drawer-link" onclick="nav('profile.html')"><i data-icon="settings"></i><b>Settings</b></button><button class="drawer-link" onclick="nav('chat.html')"><i data-icon="chat"></i><b>Chat (support)</b></button><button class="drawer-link" onclick="nav('profile.html#rate')"><i data-icon="star"></i><b>Rate</b></button><button class="drawer-link" onclick="openShare()"><i data-icon="share"></i><b>Share</b></button>
 <div class="drawer-section">Mods</div><button class="drawer-link" onclick="nav('mod-apks.html')"><i data-icon="android"></i><b>Mod APKs</b></button><button class="drawer-link" onclick="nav('mod-websites.html')"><i data-icon="globe"></i><b>Mod Websites</b></button>
 <button class="drawer-link" style="color:var(--danger);margin-top:18px" onclick="doLogout()"><i data-icon="logout"></i><b>Logout</b></button></aside></div>
-<div class="install-banner" id="installBanner"><img class="site-brand-logo" src="icons/logo-96.png" width="40" height="40" alt=""><div class="grow"><b>Install SK Education</b><small>An app-like experience on your home screen</small></div><button id="installBtn">Install</button><button class="x" id="installClose">×</button></div><div id="toast"></div>
+<div class="install-banner" id="installBanner"><img src="icons/logo-96.png" width="40" height="40" alt=""><div class="grow"><b>Install SK Education</b><small>An app-like experience on your home screen</small></div><button id="installBtn">Install</button><button class="x" id="installClose">×</button></div><div id="toast"></div>
 <script>
 document.addEventListener("DOMContentLoaded",function(){
-  // Pull the custom website logo saved by Admin > Banners > Website Logo.
-  try { if (window.db && db.ref) db.ref("settings/siteLogo/url").once("value").then(function(s){
-    var url=s.val(); if(!url || !/^https?:\/\//i.test(url)) return;
-    document.querySelectorAll(".site-brand-logo").forEach(function(img){img.onerror=function(){img.onerror=null;img.src="icons/icon-192.png"};img.src=url;});
-  }).catch(function(){}); } catch(e) {}
-
 
 if(!requireApp())return;
 document.getElementById("hello").innerHTML=`Hello <b>${esc(getUserName())}</b> 👋 — <span class="pill">Class ${categoryLabel()}</span> board exam preparation`;
@@ -31,14 +25,14 @@ idle(function(){registerUser().catch(()=>{});watchBlocked()},2000);
    T("my-courses.html","enrolled","Enrolled Courses","Your courses")+
    `<a class="feature" href="mod-websites.html"><div class="ico">${icon("globe",20)}</div><b>Mod Websites</b><small id="webCount">Useful sites</small></a>`+
    `<a class="feature" href="mod-apks.html"><div class="ico">${icon("android",20)}</div><b>Mod APKs</b><small id="apkCount">Apps & games</small></a>`+
-   T(TELEGRAM_GROUP_12,"plane","Telegram Group","Notes & updates",true)+
+   T(TELEGRAM_GROUP_10,"plane","Telegram Group","Notes & updates",true)+
    T("chat.html","chat","Support","Chat with admin");
 })();
 
 
 /* ---- Telegram join popup (dismissible; admin can edit in Settings) ---- */
 (function(){
-  const K="sk_join",DEF={enabled:true,url:"https://t.me/disha_online_classes_12",title:"Join us on Telegram",text:"Join our Telegram channel for free PDFs, notes and the latest updates."};
+  const K="sk_join",DEF={enabled:true,url:"https://t.me/disha_online_classes_free_pdf",title:"Join us on Telegram",text:"Join our Telegram channel for free PDFs, notes and the latest updates."};
   let st={};try{st=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){}
   const quiet=st.a==="join"?30*864e5:st.a==="ignore"?864e5:0;
   if(quiet&&Date.now()-st.t<quiet)return;
@@ -73,7 +67,7 @@ function renderBanners(arr){
   clearInterval(state.timer);state.bi=0;
   const track=document.getElementById("bannerTrack"),dots=document.getElementById("bannerDots");
   track.style.transform="";
-  track.innerHTML=arr.map((x,i)=>`<div class="banner-slide"><img src="${esc(x.image)}" ${i===0?'fetchpriority="high"':'loading="lazy"'} decoding="async" width="640" height="360" alt="${esc(x.title||"Banner")}" onerror="this.onerror=null;this.src='icons/icon-192.png'"></div>`).join("");
+  track.innerHTML=arr.map((x,i)=>`<div class="banner-slide"><img src="${esc(x.image)}" ${i===0?'fetchpriority="high"':'loading="lazy"'} decoding="async" width="640" height="360" alt="${esc(x.title||"Banner")}" onerror="this.onerror=null;this.src='${APP_LOGO}'"></div>`).join("");
   dots.innerHTML=arr.length>1?arr.map((_,i)=>`<i class="dot ${i===0?"active":""}"></i>`).join(""):"";
   if(arr.length>1){
     const go=i=>{state.bi=(i+arr.length)%arr.length;track.style.transform=`translateX(-${state.bi*100}%)`;[...dots.children].forEach((d,n)=>d.classList.toggle("active",n===state.bi))};
@@ -89,7 +83,7 @@ function renderCourses(batches){
   const keys=Object.keys(batches||{});
   if(!keys.length){row.innerHTML=stateHtml("No courses yet","Please check again in a little while.");return}
   const sig=JSON.stringify(batches);if(sig===rowSig)return;rowSig=sig;
-  row.innerHTML=keys.map((id,i)=>{const b=batches[id];return `<a class="course-card" href="batch.html?batch=${encodeURIComponent(id)}"><img src="${esc(thumbOf(id,b))}" ${i<2?'fetchpriority="high"':'loading="lazy"'} decoding="async" width="240" height="135" alt="" onerror="this.onerror=null;this.src='icons/icon-192.png'"><div class="course-info"><h3>${esc(b.icon||"📚")} ${esc(b.name)}</h3><p>${esc(b.description||"Complete study material")}</p><span class="pill">📚 All Subjects</span></div></a>`}).join("");
+  row.innerHTML=keys.map((id,i)=>{const b=batches[id];return `<a class="course-card" href="batch.html?batch=${encodeURIComponent(id)}"><img src="${esc(thumbOf(id,b))}" ${i<2?'fetchpriority="high"':'loading="lazy"'} decoding="async" width="240" height="135" alt="" onerror="this.onerror=null;this.src='${APP_LOGO}'"><div class="course-info"><h3>${esc(b.icon||"📚")} ${esc(b.name)}</h3><p>${esc(b.description||"Complete study material")}</p><span class="pill">📚 All Subjects</span></div></a>`}).join("");
   clearInterval(autoT);
   if(keys.length>2)autoT=setInterval(()=>{if(document.hidden)return;row.scrollBy({left:257,behavior:"smooth"});if(row.scrollLeft+row.clientWidth>=row.scrollWidth-5)row.scrollTo({left:0,behavior:"smooth"})},4500);
 }

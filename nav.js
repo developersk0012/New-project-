@@ -189,7 +189,7 @@ function showAdminPopup(text,ts){
   document.getElementById("msgOpen").onclick=()=>nav("chat.html");
 }
 function initAdminMsgPopup(){
-  let tdb=null;try{tdb=testDb}catch(e){}
+  let tdb=null;try{tdb=db}catch(e){}
   if(!tdb||!isLoggedIn()||/(chat|login|signup|ss)\.html$/.test(location.pathname))return;
   const base=tdb.ref("chats/"+getUserId()),st={};let t=null;
   const recompute=()=>{
@@ -228,7 +228,7 @@ function askConfirm(title,text,okLabel,opts){
 /* ---- v2.2: Telegram join popup (home: respects the quiet period; profile: opts.force shows it on every open) ---- */
 function skJoinPopup(opts){
   opts=opts||{};
-  const K="sk_join",DEF={enabled:true,url:"https://t.me/disha_online_classes_12",title:"Join us on Telegram",text:"Join our Telegram channel for free PDFs, notes and the latest updates."};
+  const K="sk_join",DEF={enabled:true,url:"https://t.me/disha_online_classes_free_pdf",title:"Join us on Telegram",text:"Join our Telegram channel for free PDFs, notes and the latest updates."};
   let st={};try{st=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){}
   const quiet=st.a==="join"?30*864e5:st.a==="ignore"?864e5:0;
   if(!opts.force&&quiet&&Date.now()-st.t<quiet)return;

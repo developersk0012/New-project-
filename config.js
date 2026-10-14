@@ -1,6 +1,9 @@
-/* SK Education Class 12 configuration
-   Main website, users, courses, PDFs, chat and admin controls: educationqpp
-   Test Series and test-taking data: testing-5ce76 (kept separate)
+/* SK Education configuration (v2.3 — database shift)
+   MAIN database  (db)     : educationqpp  -> courses, PDFs, users, accounts, chat, banners,
+                                              ratings, enrollments, settings, Mod APKs / Websites
+   TEST SERIES    (testDb) : testing-5ce76 -> ONLY testSeries, testMeta, testQs, testBoard,
+                                              tsUsers, testReports
+   The old simaji-ff970 database is no longer used anywhere.
 */
 
 // Watchdog: agar Firebase SDK hi (gstatic.com se) load na ho paye — slow/blocked
@@ -48,19 +51,16 @@ const testFirebaseConfig = {
   appId: "1:236048523039:android:2b77e9729a8fe975f75a2a"
 };
 
-// Class 12th site. Keep the existing Testing Firebase exclusively for Test Series
-// and test attempts; all other application data uses educationqpp.
+// db     = main database (educationqpp): everything except the test series.
+// testDb = test-series database (testing-5ce76): testSeries / testMeta / testQs /
+//          testBoard / tsUsers / testReports only.
 
-// Firebase SDK missing (blocked/slow network)? Fail soft: testDb stays null instead of crashing every page.
+// Firebase SDK missing (blocked/slow network)? Fail soft: db / testDb stay null instead of crashing every page.
 let db = null, testDb = null;
 try {
   firebase.initializeApp(firebaseConfig);
   db = firebase.database();
-  // Load the Testing project only on pages that actually manage/run Test Series.
-  // Main app pages use educationqpp exclusively.
-  if (/(^|\/)(test-series|test-play|control)\.html$/i.test(location.pathname)) {
-    testDb = firebase.initializeApp(testFirebaseConfig, "testWeb").database();
-  }
+  testDb = firebase.initializeApp(testFirebaseConfig, "testWeb").database(); // test series only
 } catch (e) { console.warn("Firebase init failed:", e); }
 
 const APP_LOGO = "icons/icon-192.png";
@@ -70,19 +70,22 @@ const TELEGRAM_URL = "https://t.me/Unknownboy01112";
 const WHATSAPP_NUMBER = "919153417231";
 const WHATSAPP_TEXT = "HELLO SIR";
 const WHATSAPP_CHANNEL = "https://whatsapp.com/channel/0029Vb8HmPi8V0tqX1Ojz61U";
-const TELEGRAM_GROUP = "https://t.me/disha_online_classes_12"
+const TELEGRAM_GROUP = "https://t.me/disha_online_classes_free_pdf";
 
-// No old Class 10 batches are shown as fallbacks. Add new Class 12 batches
-// from Admin > Courses after the educationqpp database is configured.
-const DEFAULT_BATCHES = {};
+const DEFAULT_BATCHES = {
+  "1": {name:"Khazana Batch",access:"free",icon:"🏆",image:"https://i.ibb.co/7tJkXSRJ/IMG-20260820-221756-560.jpg",description:"Morning Batch - Complete Study Material"},
+  "2": {name:"Disha Online Classes",access:"free",icon:"🌟",image:"https://i.ibb.co/pBGDQq8m/1771220242-10th-batch.webp",description:"Evening Batch - Expert Guidance"},
+  "3": {name:"Target Board",access:"free",icon:"🎯",image:"https://i.ibb.co/KcDw1wwN/IMG-20260820-222646-987.jpg",description:"Weekend Batch - Board Exam Preparation"}
+};
 
-const CATEGORIES = {physics:"Physics",chemistry:"Chemistry",biology:"Biology",math:"Mathematics",hindi:"Hindi",english:"English"};
-const CATEGORY_ICONS = {physics:"⚛️",chemistry:"🧪",biology:"🧬",math:"📐",hindi:"📖",english:"🔤"};
+const CATEGORIES = {science:"Science",math:"Mathematics",hindi:"Hindi",sanskrit:"Sanskrit",sst:"Social Studies"};
+const CATEGORY_ICONS = {science:"🔬",math:"📐",hindi:"📝",sanskrit:"🕉️",sst:"🌍"};
 
-const TELEGRAM_GROUP_12 = "https://t.me/disha_online_classes_12";
-function getCategory(){ return "12"; }
-function setCategory(){ /* This deployment is for Class 12th. */ }
-function categoryLabel(){ return "12th"; }
+const TELEGRAM_GROUP_10 = TELEGRAM_GROUP;
+function getCategory(){ return "10"; }
+function setCategory(){ /* Class 12th removed — only 10th is available now */ }
+function categoryLabel(){ return "10th"; }
+// Courses/PDFs ab main database (educationqpp / db) se aate hain.
 function coursesDb(){ return db; }
 
 function withTimeout(promise, ms=8000){

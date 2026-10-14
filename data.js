@@ -3,8 +3,8 @@
    (stale-while-revalidate): 2nd visit onwards pages paint instantly from cache while
    fresh data is fetched quietly in the background. */
 (function () {
-  var DB_MAIN = "https://educationqpp-default-rtdb.firebaseio.com";
-  var DB_TEST = "https://testing-5ce76-default-rtdb.firebaseio.com";
+  var DB_MAIN = "https://educationqpp-default-rtdb.firebaseio.com"; // courses, pdfs, banners, mod apks/sites, settings
+  var DB_TEST = "https://testing-5ce76-default-rtdb.firebaseio.com"; // test series only (testMeta, testSeries)
   var VER = "10"; // bump to invalidate every user's cache
   var TTL = { batches: 5 * 60e3, pdfs: 5 * 60e3, banners: 10 * 60e3, thumbs: 5 * 60e3, modApks: 3 * 60e3, modSites: 3 * 60e3, testMeta: 2 * 60e3, testSeries: 2 * 60e3, joinPopup: 10 * 60e3 };
   var inflight = {}, mem = {};
@@ -23,7 +23,7 @@
   function sdk(base, path) { // fallback: Firebase SDK (websocket) if plain HTTPS fetch fails
     return new Promise(function (resolve, reject) {
       var h = null;
-      try { h = base === DB_TEST ? testDb : db; } catch (e) {}
+      try { h = base === DB_MAIN ? db : testDb; } catch (e) {}
       if (!h) return reject(new Error("SDK not ready"));
       var to = setTimeout(function () { reject(new Error("SDK timeout")); }, 9000);
       h.ref(path).once("value").then(function (s) { clearTimeout(to); resolve(s.val()); }, function (e) { clearTimeout(to); reject(e); });
@@ -83,7 +83,7 @@
     banners: function (cb) { return swr("banners", DB_MAIN, "banners", function (r) { return Object.values(r).filter(function (x) { return x && x.image; }); }, cb); },
     /* admin-set thumbnail overrides: settings/courseThumbs/<batchId> = { url } -> { batchId: url } */
     thumbs: function (cb) { return swr("thumbs", DB_MAIN, "settings/courseThumbs", function (r) { var o = {}; Object.keys(r).forEach(function (k) { if (r[k].url) o[k] = r[k].url; }); return o; }, cb); },
-    /* Mod APKs / Mod Websites (admin-managed, educationqpp): newest + pinned first, hidden ones removed */
+    /* Mod APKs / Mod Websites (admin-managed, main database): newest + pinned first, hidden ones removed */
     modApks: function (cb) { return swr("modApks", DB_MAIN, "modApks", modMap, cb); },
     modSites: function (cb) { return swr("modSites", DB_MAIN, "modSites", modMap, cb); },
     testMeta: function (cb) { return swr("testMeta", DB_TEST, "testMeta", function (r) {

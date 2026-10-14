@@ -182,15 +182,7 @@ html.tg .abody{padding-bottom:calc(40px + var(--tg-safe-area-inset-bottom,0px))}
 </form></div>
 <div class="page-card"><h2>Websites <span id="siteCount" style="color:var(--muted);font-weight:500"></span></h2><div class="toolbar"><input class="search" id="siteSearch" placeholder="Search..."></div><div id="siteList" class="admin-list"><div class="skel"></div></div></div>
 </div>
-<div class="admin-section" id="sec-courses">
-<div class="page-card"><h2>Class 12th Batch Manager</h2><p style="color:var(--muted);font-size:12px;margin:0 0 12px">Create and manage the new Class 12th batches in educationqpp. Old Class 10 batches are not preloaded.</p>
-<form id="batchForm"><input id="batchEditId" type="hidden"><div class="field"><label>Batch name *</label><input id="batchName" required maxlength="90" placeholder="e.g. Bihar Board 12th Science"></div>
-<div class="field"><label>Icon / Emoji</label><input id="batchIcon" maxlength="8" value="📚" placeholder="📚"></div>
-<div class="field"><label>Thumbnail image URL</label><input id="batchImage" type="url" placeholder="https://..."></div>
-<div class="field"><label>Description</label><textarea id="batchDescription" rows="2" maxlength="240" placeholder="Batch details"></textarea></div>
-<div class="field"><label>Access</label><select id="batchAccess"><option value="free">Free</option><option value="paid">Paid</option></select></div>
-<div class="btn-row"><button class="primary" id="batchSave" type="submit">Add Batch</button><button class="secondary" id="batchCancel" type="button" hidden>Cancel edit</button></div></form></div>
-<div class="page-card"><h2>Courses &amp; Thumbnails</h2><p style="color:var(--muted);font-size:12px;margin:0 0 12px">Edit batch details, change each course thumbnail, and view PDF / Video / DPP counts for every subject.</p><div class="agrid" id="courseGrid"><div class="skel" style="height:200px"></div></div></div></div>
+<div class="admin-section" id="sec-courses"><div class="page-card"><h2>Courses &amp; Thumbnails</h2><p style="color:var(--muted);font-size:12px;margin:0 0 12px">Change each course thumbnail here. The PDF / Video / DPP counts are shown for every subject.</p><div class="agrid" id="courseGrid"><div class="skel" style="height:200px"></div></div></div></div>
 <div class="admin-section" id="sec-enroll"><div class="page-card"><h2>Enrollments</h2><div class="toolbar"><input class="search" id="enrSearch"placeholder="Search"></div><div id="enrList"><div class="skel"></div></div></div></div>
 <div class="admin-section" id="sec-banners"><div class="page-card"><h2>Home Banners</h2><form id="bannerForm"><div class="field"><label>Banner image file</label><input id="bannerFile" type="file" accept="image/*"></div><div class="field"><label>Or image URL</label><input id="bannerUrl" type="url" placeholder="https://..."></div><div class="field"><label>Title</label><input id="bannerTitle" placeholder="Banner title"></div><div class="field"><label>Subtitle</label><input id="bannerSub" placeholder="Banner subtitle"></div><button class="primary">Add Banner</button></form><div id="bannerList" class="admin-list" style="margin-top:14px"></div></div></div>
 
@@ -596,25 +588,8 @@ $("accForm").onsubmit=async e=>{
   }finally{btn.disabled=false;btn.textContent="Create account / Reset password"}
 };
 
-/* ---------- Courses: Class 12 batch management + thumbnails ---------- */
+/* ---------- Courses: thumbnail + subjects (PDF / Video / DPP counts) ---------- */
 let admBatches={},admThumbs={},admPdfs=[];
-const batchForm=$("batchForm");
-function resetBatchForm(){batchForm.reset();$("batchEditId").value="";$("batchIcon").value="📚";$("batchSave").textContent="Add Batch";$("batchCancel").hidden=true}
-$("batchCancel").onclick=resetBatchForm;
-batchForm.onsubmit=async e=>{
-  e.preventDefault();
-  const id=$("batchEditId").value.trim(),name=$("batchName").value.trim(),icon=$("batchIcon").value.trim()||"📚",image=$("batchImage").value.trim(),description=$("batchDescription").value.trim(),access=$("batchAccess").value;
-  if(!name){toast("Enter a batch name","error");return}
-  if(image&&!/^https?:\/\//i.test(image)){toast("Thumbnail must be an http(s) URL","error");return}
-  const payload={name,icon,image,description,access,updatedAt:new Date().toISOString()};
-  const btn=$("batchSave");btn.disabled=true;
-  try{
-    if(id) await withTimeout(db.ref("batches/"+id).update(payload),10000);
-    else {payload.createdAt=new Date().toISOString();await withTimeout(db.ref("batches").push(payload),10000)}
-    resetBatchForm();try{SKData.clear()}catch(x){};await loadCourses();toast(id?"Batch updated ✓":"Batch added ✓");
-  }catch(err){toast(err.message||"Could not save batch","error")}
-  finally{btn.disabled=false}
-};
 const SUBJ_ICONS=()=>Object.entries(CATEGORIES);
 async function loadCourses(){
   $("courseGrid").innerHTML='<div class="skel" style="height:200px"></div>';
@@ -632,22 +607,15 @@ function renderCourses(){
     const subj=SUBJ_ICONS().map(([k,v])=>{const r=rows.filter(x=>x.c===k),c={pdf:0,video:0,dpp:0};r.forEach(x=>c[matKind(x)]++);return `<div class="srow"><span>${CATEGORY_ICONS[k]} ${esc(v)}</span><span>📄 ${c.pdf} · 🎥 ${c.video} · 📝 ${c.dpp}</span></div>`}).join("");
     return `<article class="acard" data-id="${esc(id)}"><div class="thumb"><img src="${esc(th)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${APP_LOGO}';this.classList.add('fb')"></div><div class="abody2"><h3>${esc(b.icon||"📚")} ${esc(b.name||"Course")}</h3><div class="meta">${rows.length} materials${admThumbs[id]&&admThumbs[id].url?" · custom thumbnail":""}</div>
 <div class="thumb-url"><input type="url" placeholder="Thumbnail image URL" value="${esc((admThumbs[id]&&admThumbs[id].url)||"")}" data-f="url"></div>
-<div class="btn-row"><button type="button" class="secondary mini" data-act="editbatch">Edit batch</button><button type="button" class="danger mini" data-act="deletebatch">Delete</button></div><div class="btn-row"><label class="secondary mini" style="display:flex;align-items:center;justify-content:center;cursor:pointer">📷 Upload<input type="file" accept="image/*" data-f="file" hidden></label><button type="button" class="primary mini" data-act="saveth">Save thumbnail</button><button type="button" class="secondary mini" data-act="resetth">Reset</button></div>
+<div class="btn-row"><label class="secondary mini" style="display:flex;align-items:center;justify-content:center;cursor:pointer">📷 Upload<input type="file" accept="image/*" data-f="file" hidden></label><button type="button" class="primary mini" data-act="saveth">Save</button><button type="button" class="secondary mini" data-act="resetth">Reset</button></div>
 <details><summary>Subjects (PDF / Video / DPP)</summary>${subj}</details></div></article>`}).join("")||'<div class="empty">No courses found</div>';
 }
 $("courseGrid").onclick=async e=>{
   const btn=e.target.closest("[data-act]");if(!btn)return;
-  const card=btn.closest(".acard"),id=card.dataset.id,inp=card.querySelector('[data-f=url]'),act=btn.dataset.act;
-  if(act==="editbatch"){
-    const b=admBatches[id]||{};$("batchEditId").value=id;$("batchName").value=b.name||"";$("batchIcon").value=b.icon||"📚";$("batchImage").value=b.image||"";$("batchDescription").value=b.description||"";$("batchAccess").value=b.access||"free";$("batchSave").textContent="Save changes";$("batchCancel").hidden=false;$("batchForm").scrollIntoView({behavior:"smooth",block:"start"});return;
-  }
-  if(act==="deletebatch"){
-    const b=admBatches[id]||{};if(!await askConfirm("Delete this batch?","The batch record will be removed. Existing PDF records linked to it are not automatically deleted.","Delete batch",{kind:"warn"}))return;
-    btn.disabled=true;try{await withTimeout(db.ref("batches/"+id).remove(),10000);try{SKData.clear()}catch(x){};await loadCourses();toast("Batch deleted")}catch(err){toast(err.message||"Delete failed","error")}finally{btn.disabled=false}return;
-  }
+  const card=btn.closest(".acard"),id=card.dataset.id,inp=card.querySelector('[data-f=url]');
   btn.disabled=true;
   try{
-    if(act==="saveth"){
+    if(btn.dataset.act==="saveth"){
       const url=inp.value.trim();if(!/^https?:\/\//i.test(url))throw new Error("Enter a valid image URL");
       await withTimeout(db.ref("settings/courseThumbs/"+id).set({url,updatedAt:new Date().toISOString()}),8000);
       admThumbs[id]={url};toast("Thumbnail saved");
@@ -720,7 +688,7 @@ function renderDash(){
 }
 document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g)setTab(g.dataset.go)});
 
-/* ---------- Mod APKs & Mod Websites (educationqpp: modApks/*, modSites/*) ---------- */
+/* ---------- Mod APKs & Mod Websites (main database educationqpp: modApks/*, modSites/*) ---------- */
 const MODCFG={modApks:{p:"apk",img:"icon",extra:{Ver:"version",Size:"size"},title:"Mod APK"},modSites:{p:"site",img:"logo",extra:{},title:"Website"}};
 const modEdit={modApks:null,modSites:null};
 function modReset(node){

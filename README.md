@@ -1,13 +1,16 @@
-# Class 12th deployment notes
-- Main application database: `educationqpp` (courses, PDFs, users, chat, banners, ratings, enrollments, admin settings, Mod APKs/Websites).
-- Existing Test Series database: `testing-5ce76` (series, tests, questions, attempts, leaderboard, reports). Test Series was intentionally left on this project.
-- The Class 12th course list starts empty; add batches from Admin > Courses. Add matching PDF/material records under `pdfs` in the `educationqpp` Realtime Database with each record's `batch_id` set to the batch key and `category_id` such as `physics`, `chemistry`, `biology`, `math`, `hindi`, or `english`.
-- After deployment, configure Realtime Database rules for both projects. Main app writes require permissions for accounts/users, chats, ratings, enrollments, settings, batches, banners, modApks, and modSites. Keep Testing rules and data intact for the Test Series.
+# SK Education — v2.3 (database shift)
+- **simaji-ff970 (Seema ji) database poori tarah hata diya** — ab kahin use nahi hota.
+- **Naya main database: `educationqpp`** — test series ke siwaay SAB kuch ab isi mein: courses (`batches`), `pdfs`, `users`, `accounts` (login/signup), `chats`, `banners`, `ratings`, `enrollments`, `blocked_users`, `settings/*` (maintenance, domain, join popup, course thumbnails), `modApks`, `modSites`.
+- **Test series `testing-5ce76` mein hi rahi** — sirf `testSeries`, `testMeta`, `testQs`, `testBoard`, `tsUsers`, `testReports`. `tools/bulk_upload.py` bhi wahi use karta hai (koi change nahi).
+- Code: `db` = educationqpp, `testDb` = testing-5ce76 (sirf test series). `config.js` + `data.js` mein dono URL alag (`DB_MAIN`, `DB_TEST`).
+- NEW `tools/migrate_db.py`: purana data naye DB mein copy karta hai (dry-run pehle; `--go` se asli copy). Test series ka data nahi chhuta.
+- sw cache v23, data cache VER 10 (purana cache apne-aap saaf).
+- **Firebase rules (educationqpp)**: pehle jaise hi — public read: `batches`, `pdfs`, `banners`, `settings`, `modApks`, `modSites`; write: `users`, `accounts`, `chats`, `ratings`, `enrollments`, `blocked_users` (users) aur admin ke liye baaki nodes. `settings/adminPassword` mat rakhein.
 
 # SK Education — v2.2
 - **Signup first**: new visitors, and users who log out, land on `signup.html`. Below the form: "Already have an account? Login here".
 - **Signup User ID**: anything is allowed (`user@q244`, `user1234`, `@1244user`, `1245`, any language) except spaces. 4-24 characters. Spaces are removed while typing.
-- **Admin panel on phones** (`control.html`): slide-in menu (☰), bottom bar (Home / Users / Tests / Chat / More), single-column forms, big touch targets. Desktop keeps the sidebar.
+- **Admin panel on phones** (`ss.html`): slide-in menu (☰), bottom bar (Home / Users / Tests / Chat / More), single-column forms, big touch targets. Desktop keeps the sidebar.
 - **New popups**: delete, leave test and submit test use one styled dialog (`skDialog` in nav.js; `askConfirm` still works). Submit shows Answered / Unanswered / Total.
 - **Test time (minutes)**: admin sets how long the whole quiz may take (any number: 1, 10, 30, 60 ... with quick buttons) when uploading, single or bulk. Empty = 1 minute per question. One countdown for the whole test, auto-submits at 0; Previous / Next, Review mark and the question palette stay. Data: `testMeta/<id>/duration` (minutes).
 - **Before the test**: instructions are fully in Hindi, in italics.
@@ -18,11 +21,11 @@
 - **Homepage on desktop**: wide layout (up to 1240px), top navigation bar, larger text, course grid, 6 quick-access tiles. Phones keep the bottom bar.
 - **Profile page** redesigned (header card, stats, shortcuts, theme switch, rating, links). The Telegram join popup shows every time Profile is opened.
 - `tools/bulk_upload.py`: new `--subcat KEY` (and `--duration MINUTES`).
-- sw cache v23, data cache VER 10.
+- sw cache v22, data cache VER 9.
 - Firebase rules: nothing new — `testSeries`, `testMeta`, `testReports` use the same write rules as before.
 
 # SK Education — v2.1
-- **Admin panel ab `control.html` par hai** (`admin.html` hata diya, noindex + no-store). Purana link ab 404 dega. Telegram Mini App `?startapp=admin` bhi `control.html` kholta hai.
+- **Admin panel ab `ss.html` par hai** (`admin.html` hata diya, noindex + no-store). Purana link ab 404 dega. Telegram Mini App `?startapp=admin` bhi `ss.html` kholta hai.
 - **Test Series add/delete** (batches jaise): Admin > Test Series > "🗂 Series" — naam, emoji, color, subjects (comma se) likhkar nayi series banayein; edit/delete bhi. Delete par us series ke saare tests, leaderboard aur reports hat jate hain. Default Class 10/12 bhi delete ho sakti hain. Data: `testSeries/<id>`.
 - **Bulk delete**: Tests list mein checkbox + subject/series filter + "Select all" + "Delete selected".
 - **Question report**: har question ke saath ⚠️ button → Wrong question / Wrong option / Formatting issue / Other (khud likhein). Admin > Test Series ke neeche "Question reports" mein dikhta hai (Resolved / Clear all). Data: `testReports/<testId>/<id>`.
@@ -54,7 +57,7 @@ Deploy the folder root on Vercel (same as before). Env variables: TELEGRAM_BOT_T
 
 ## v1.5 — Course UI + Admin responsive
 - User: responsive 16:9 course thumbnails (no crop/overflow), new My Courses cards with "Enrolled" state, simple Subjects list, each subject has separate PDF / Video / DPP tabs (a material is DPP if its type is "dpp" or its title contains "DPP").
-- Admin: new Courses tab (thumbnail upload/URL/reset, per-subject PDF/Video/DPP counts) and Enrollments tab (grouped by course, search, remove). Thumbnails stored in educationqpp `settings/courseThumbs/<batchId>/url`.
+- Admin: new Courses tab (thumbnail upload/URL/reset, per-subject PDF/Video/DPP counts) and Enrollments tab (grouped by course, search, remove). Thumbnails stored in testing-5ce76 `settings/courseThumbs/<batchId>/url`.
 - Global no-horizontal-scroll rules, touch-friendly sizes, landscape + Telegram safe-area handling, friendly error toast + error-handler.html.
 - Bump: sw cache v13, data cache VER 7.
 
