@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>All Courses - SK Education</title><meta name="theme-color" content="#0B0E15"><meta name="description" content="SK Education - free study material, courses and support chat."><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://educationqpp-default-rtdb.firebaseio.com" crossorigin><link rel="preconnect" href="https://testing-5ce76-default-rtdb.firebaseio.com" crossorigin><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"><script src="tg.js"></script><script src="data.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script defer src="config.js"></script><script defer src="nav.js"></script></head>
+<body><div class="app"><header class="topbar"><div class="brand"><img src="icons/logo-96.png" width="30" height="30" alt="SK" onerror="this.onerror=null;this.src='icons/icon-192.png'"><span>All Courses</span></div><button class="icon-btn" onclick="nav('index.html')">←</button></header><main class="content"><input class="search" id="search" type="search" placeholder="Search courses..." autocomplete="off"><div class="cgrid" id="list" style="margin-top:12px"><div class="skel" style="height:230px"></div><div class="skel" style="height:230px"></div></div></main><nav class="bottom-nav"><button class="nav-item" onclick="nav('index.html')"><span>⌂</span>HOME</button><button class="nav-item" onclick="nav('my-courses.html')"><span>▣</span>MY COURSES</button><button type="button" class="nav-item" onclick="nav('test-series.html')"><span>✎</span>TEST SERIES</button><button class="nav-item" onclick="nav('chat.html')"><span>💬</span>CHAT</button><button class="nav-item" onclick="nav('profile.html')"><span>●</span>PROFILE</button></nav></div><div id="toast"></div>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+if(!requireApp())return;
+idle(watchBlocked,2000);
+let batches=null,enrolled=new Set(),t=null;
+const list=document.getElementById("list"),cat=getCategory()||"10";
+function render(){
+  if(!batches)return;
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  const ids=Object.keys(batches).filter(id=>{const b=batches[id];return ((b.name||"")+" "+(b.description||"")).toLowerCase().includes(q)});
+  list.innerHTML=ids.length?ids.map((id,i)=>courseCard(id,batches[id],enrolled.has(String(id)),i)).join(""):'<div style="grid-column:1/-1">'+stateHtml("No courses found","Try a different search.")+'</div>';
+}
+list.addEventListener("click",async e=>{
+  const btn=e.target.closest("[data-enroll]");if(!btn)return;
+  const id=btn.dataset.enroll;btn.disabled=true;btn.textContent="Enrolling...";
+  try{await saveEnrollment(id,batches[id],"enroll");enrolled.add(String(id));render();toast("Enrolled ✓");haptic("ok")}
+  catch(err){btn.disabled=false;btn.textContent="Enroll";toast("Could not enroll. Please try again.","error");haptic("error")}
+});
+document.getElementById("search").addEventListener("input",()=>{clearTimeout(t);t=setTimeout(render,120)});
+loadThumbs(render);
+loadBatches(b=>{batches=b;render()}).then(b=>{batches=b;render()}).catch(()=>{list.innerHTML='<div style="grid-column:1/-1">'+stateHtml("Could not load courses","Check your internet connection.",retryBtn())+'</div>'});
+loadEnrollments(all=>{enrolled=new Set(Object.values(all).filter(x=>(x.category||"10")===cat).map(x=>String(x.batchId)));render()}).catch(()=>{});
+
+});
+</script></body></html>

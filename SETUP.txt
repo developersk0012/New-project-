@@ -1,0 +1,28 @@
+SK Education v1.7
+
+1. Deploy all files (Vercel, project root).
+2. Vercel Environment Variables:
+   ADMIN_PASSWORD      (REQUIRED) strong admin password - sirf server par rehta hai
+   ADMIN_SECRET        (optional) random lambi string
+   TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID   chat / admin alerts wala bot
+   ERROR_BOT_TOKEN, ERROR_CHAT_ID         (optional) website errors ke liye ALAG bot. Na do to upar wala bot use hota hai.
+   IMGBB_API_KEY, SITE_URL
+   Deploy ke baad error-handler.html > "Telegram test" dabakar alert check karein.
+3. Firebase databases:
+   - educationqpp (main app): batches, pdfs, accounts, users, chats, ratings, enrollments, banners, modApks, modSites, settings, course thumbnails, join popup.
+   - testing-5ce76 (keep unchanged for Test Series): testSeries, testMeta, testQs, testBoard, tsUsers, testReports.
+   - Set Realtime Database rules in BOTH projects for the paths used by the app. Main app writes require batches/users/accounts/chats/ratings/enrollments/settings/banners/modApks/modSites write permissions. Test Series rules must remain on testing-5ce76. Do not delete the testing project or its test data.
+   - Remove any old public `settings/adminPassword` value if it exists.
+4. Test Series JSON (Admin > Test Series > "Sample JSON" download karein):
+   [ {"question":"...", "options":["A","B","C","D"], "answer":"B", "explanation":"optional"} ]
+   answer: letter (A-F), option ka text, ya number. Upload se pehle preview mein sahi answer check karein.
+5. Mod APK: file ko Drive / Mediafire / GitHub Releases / Telegram par rakhkar link admin mein daalein.
+6. Telegram Mini App: @BotFather -> /newapp -> https://YOUR-DOMAIN/index.html ; admin: ?startapp=admin
+
+7. v2.0 Bulk add:
+   - Admin > Test Series > "Bulk add" (multi-select files) ya Termux se: python tools/bulk_upload.py <folder> --cls 10 --subject physics  (guide: tools/TERMUX.txt)
+   - Dono admin browser jaisi hi Firebase rules (testMeta / testQs write) use karte hain.
+
+8. v2.1 Firebase rules (Realtime DB, testing-5ce76): "testReports" aur "testSeries" par bhi wahi rule lagayein jo "testMeta" par hai
+   (testReports: koi bhi user push kar sake; testSeries: sirf admin ke liye likhna ho to admin ko token se likhwayein).
+9. Admin ka naya address: /ss.html  (Telegram: ?startapp=admin). Lamba password rakhein — server par 5 galat try ke baad 15 min lock + Telegram alert pehle se hai.

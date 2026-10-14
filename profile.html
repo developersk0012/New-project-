@@ -1,0 +1,75 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Profile - SK Education</title><meta name="theme-color" content="#0B0E15"><meta name="description" content="SK Education - free study material, courses and support chat."><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://educationqpp-default-rtdb.firebaseio.com" crossorigin><link rel="preconnect" href="https://testing-5ce76-default-rtdb.firebaseio.com" crossorigin><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"><script src="tg.js"></script><script src="data.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script defer src="config.js"></script><script defer src="nav.js"></script></head>
+<body><div class="app"><header class="topbar"><div class="brand"><img src="icons/logo-96.png" width="30" height="30" alt="SK" onerror="this.onerror=null;this.src='icons/icon-192.png'"><span>Profile</span></div><button class="icon-btn" type="button" aria-label="Back" onclick="nav('index.html')">←</button></header>
+<main class="content pf">
+<section class="pf-hero"><div class="pf-av" id="pfAv">U</div><div class="pf-who"><h2 id="pName"></h2><small id="pLoginId"></small><span class="pf-chip" id="pClass"></span></div></section>
+<section class="pf-stats"><div><b id="stTests">0</b><small>Tests taken</small></div><div><b id="stAvg">0%</b><small>Average score</small></div><div><b id="stBest">0%</b><small>Best score</small></div></section>
+<div class="pf-tiles" id="pfTiles"></div>
+<section class="pf-card"><h3 class="pf-h">Settings</h3>
+  <div class="pf-row"><div class="pf-ic" id="icTheme"></div><div class="pf-t"><b>Dark mode</b><small>Switch between light and dark theme</small></div><button type="button" class="pf-switch" id="themeToggleBtn" role="switch" aria-checked="true" aria-label="Dark mode"><i></i></button></div>
+  <button type="button" class="pf-row pf-btn" id="shareBtn"><div class="pf-ic" id="icShare"></div><div class="pf-t"><b>Share SK Education</b><small>Invite your friends</small></div><span class="pf-go">›</span></button>
+</section>
+<section class="pf-card" id="rate"><h3 class="pf-h">Rate SK Education</h3>
+  <p class="pf-p">Your feedback helps us improve.</p>
+  <form id="ratingForm">
+    <div class="stars" id="stars"><span class="star" data-n="1">★</span><span class="star" data-n="2">★</span><span class="star" data-n="3">★</span><span class="star" data-n="4">★</span><span class="star" data-n="5">★</span></div>
+    <div class="field" style="margin-top:14px"><textarea id="reviewText" rows="3" placeholder="Write a review (optional)"></textarea></div>
+    <button class="primary" type="submit">Submit Rating</button>
+  </form>
+</section>
+<section class="pf-card"><h3 class="pf-h">Connect with us</h3>
+  <div class="pf-links"><a href="chat.html" id="lkChat"><span class="pf-ic" id="icChat"></span>Support</a><a href="https://www.instagram.com/x2r_satendra_kushwaha/" target="_blank" rel="noopener" id="lkIg"><span class="pf-ic" id="icIg"></span>Instagram</a><a href="https://t.me/Unknownboy01112" target="_blank" rel="noopener" id="lkTg"><span class="pf-ic" id="icTg"></span>Telegram</a></div>
+</section>
+<button type="button" class="pf-logout" id="logoutBtn"></button>
+<div class="footer-credit"><b>SK Education</b>Made with ❤️ by Satendra Kumar</div>
+</main>
+<nav class="bottom-nav"><button class="nav-item" onclick="nav('index.html')"><span>⌂</span>HOME</button><button class="nav-item" onclick="nav('my-courses.html')"><span>▣</span>MY COURSES</button><button type="button" class="nav-item" onclick="nav('test-series.html')"><span>✎</span>TEST SERIES</button><button class="nav-item" onclick="nav('chat.html')"><span>💬</span>CHAT</button><button class="nav-item active"><span>●</span>PROFILE</button></nav></div><div id="toast"></div>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+if(requireApp()){
+ idle(watchBlocked,2000);
+ const $=i=>document.getElementById(i),name=getUserName()||"User";
+ $("pName").textContent=name;
+ $("pfAv").textContent=[...name.trim()][0]?[...name.trim()][0].toUpperCase():"U";
+ $("pLoginId").textContent="ID: "+(getUserLoginId()||"-");
+ $("pClass").textContent="Class "+categoryLabel();
+ // test stats (best scores are kept on this device)
+ try{
+   const b=JSON.parse(localStorage.getItem("sk_ts_best")||"{}"),ids=Object.keys(b),pc=ids.map(k=>b[k].total?b[k].score/b[k].total*100:0);
+   $("stTests").textContent=ids.length;
+   $("stAvg").textContent=(ids.length?Math.round(pc.reduce((a,x)=>a+x,0)/ids.length):0)+"%";
+   $("stBest").textContent=(ids.length?Math.round(Math.max.apply(null,pc)):0)+"%";
+ }catch(e){}
+ const T=(href,ic,t,c)=>`<a class="pf-tile" href="${href}" style="--c:${c}"><span class="pf-ic">${icon(ic,22)}</span><b>${t}</b></a>`;
+ $("pfTiles").innerHTML=T("my-courses.html","enrolled","My Courses","#5B7CFA")+T("test-series.html","test","Test Series","#8B5CF6")+T("chat.html","chat","Support","#34B47C")+T("courses.html","grid","All Courses","#F5A524");
+ $("icTheme").innerHTML=icon("moon",20);$("icShare").innerHTML=icon("share",20);$("icChat").innerHTML=icon("chat",18);$("icIg").innerHTML=icon("camera",18);$("icTg").innerHTML=icon("plane",18);
+ $("logoutBtn").innerHTML=icon("logout",18)+" Logout";$("logoutBtn").onclick=()=>doLogout();
+ $("shareBtn").onclick=()=>openShare();
+ const sw=$("themeToggleBtn"),syncSw=()=>sw.setAttribute("aria-checked",document.documentElement.dataset.theme==="dark"?"true":"false");
+ syncSw();sw.onclick=()=>{toggleTheme();syncSw()};
+
+ // ---- Star rating: clicking/hovering a star fills every star up to it, not just the one touched ----
+ let rating=0;
+ const starEls=[...document.querySelectorAll("#stars .star")];
+ function paintStars(n){starEls.forEach(s=>s.classList.toggle("filled",Number(s.dataset.n)<=n))}
+ starEls.forEach(s=>{
+   s.addEventListener("mouseenter",()=>paintStars(Number(s.dataset.n)));
+   s.addEventListener("mouseleave",()=>paintStars(rating));
+   s.addEventListener("click",()=>{rating=Number(s.dataset.n);paintStars(rating)});
+ });
+ $("ratingForm").onsubmit=async e=>{
+   e.preventDefault();
+   if(!rating){toast("⭐ Please select a star rating first","error");return}
+   const review=$("reviewText").value.trim();
+   try{
+     await db.ref("ratings").push({userId:getUserId(),userName:getUserName(),stars:rating,review,timestamp:new Date().toISOString()});
+     notifyTelegram("rating",{userName:getUserName(),stars:rating,review}).catch(()=>{});
+     toast("✅ Thank you! Your rating has been submitted");
+     e.target.reset();rating=0;paintStars(0);
+   }catch(err){toast("❌ Rating save failed","error")}
+ };
+ if(location.hash==="#rate")$("rate").scrollIntoView({behavior:"smooth"});
+ // Telegram join popup: shown every time the profile page is opened
+ setTimeout(()=>skJoinPopup({force:true}),700);
+}
+});
+</script></body></html>

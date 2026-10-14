@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Website - SK Education</title><meta name="theme-color" content="#0B0E15"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://educationqpp-default-rtdb.firebaseio.com" crossorigin><link rel="preconnect" href="https://testing-5ce76-default-rtdb.firebaseio.com" crossorigin><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"><script src="tg.js"></script><script src="data.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script defer src="config.js"></script><script defer src="nav.js"></script></head>
+<body><div class="app"><header class="topbar"><div class="brand"><img src="icons/logo-96.png" width="30" height="30" alt="SK"><span>SK Education</span></div><button class="icon-btn" onclick="nav('mod-websites.html')">←</button></header>
+<div class="sv-wrap"><div class="sv-bar" id="bar" hidden><div class="mlogo"><img id="svLogo" alt=""></div><div class="t"><b id="svName"></b><small id="svHost"></small></div><a class="mini secondary" id="svOpen" target="_blank" rel="noopener noreferrer"></a></div>
+<div class="sv-frame" id="frameBox"><div class="sv-load" id="svLoad"><div class="spin"></div><span>Opening the website...</span></div></div>
+<div class="sv-hint" id="hint"><span>Is the page blank or not loading? Some sites do not allow being opened inside another site.</span><a class="mini primary" id="svOpen2" target="_blank" rel="noopener noreferrer" style="width:auto"></a></div></div></div><div id="toast"></div>
+<script>
+document.documentElement.classList.add("sv-page");
+document.addEventListener("DOMContentLoaded",function(){
+if(!requireApp())return;
+idle(watchBlocked,2000);
+const id=new URLSearchParams(location.search).get("id")||"",$=i=>document.getElementById(i);
+function fail(m){$("svLoad").innerHTML='<b style="color:var(--text)">'+esc(m)+'</b><a class="primary" href="mod-websites.html" style="width:auto;padding:10px 20px;display:inline-flex;align-items:center">Go back</a>'}
+SKData.modSites().then(list=>{
+  const x=list.find(s=>s.id===id),url=x&&safeUrl(x.url);
+  if(!x||!url)return fail("This website could not be found.");
+  document.title=x.name+" - SK Education";
+  $("bar").hidden=false;$("svName").textContent=x.name;$("svHost").textContent=hostOf(url);
+  const lg=$("svLogo");lg.src=safeUrl(x.logo)||APP_LOGO;lg.onerror=()=>{lg.onerror=null;lg.src=APP_LOGO};
+  [$("svOpen"),$("svOpen2")].forEach(a=>{a.href=url;a.innerHTML=icon("external",14)+" Open in browser"});
+  if(location.protocol==="https:"&&url.startsWith("http:")){$("hint").classList.add("show");$("hint").firstElementChild.textContent="This site is not secure (https), so it cannot open here. Open it in your browser instead.";$("svLoad").classList.add("hide");return}
+  const f=document.createElement("iframe");
+  f.referrerPolicy="no-referrer";f.title=x.name;f.loading="eager";
+  f.setAttribute("allow","fullscreen; clipboard-write; autoplay");
+  f.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals");
+  f.onload=()=>{$("svLoad").classList.add("hide");setTimeout(()=>$("hint").classList.add("show"),1500)};
+  f.src=url;$("frameBox").appendChild(f);
+  setTimeout(()=>{$("hint").classList.add("show")},9000);
+}).catch(()=>fail("Could not load. Check your internet connection."));
+});
+</script></body></html>

@@ -1,0 +1,208 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Test - SK Education</title><meta name="theme-color" content="#0B0E15"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://testing-5ce76-default-rtdb.firebaseio.com" crossorigin><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"><script src="tg.js"></script><script src="data.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script defer src="config.js"></script><script defer src="nav.js"></script><script defer src="quiz-parser.js"></script><script defer src="ts.js"></script></head>
+<body><div class="app"><header class="topbar"><div class="brand"><img src="icons/logo-96.png" width="30" height="30" alt="SK"><span id="ttl">Test</span></div><button class="icon-btn" onclick="leave()">←</button></header>
+<main class="content" id="stage" style="padding-bottom:30px"><div class="skel" style="height:240px"></div></main></div><div id="toast"></div>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+if(!requireApp())return;
+const id=new URLSearchParams(location.search).get("id")||"",$=i=>document.getElementById(i),st=$("stage"),me=tsUid(),LET="ABCDEF";
+let meta=null,Q=null,A=null,timer=null,active=false,DUR=10,R=null;
+const back=()=>nav(meta?`test-series.html?c=${encodeURIComponent(meta.cls)}&s=${encodeURIComponent(meta.subject)}${meta.sub?"&u="+encodeURIComponent(meta.sub):""}`:"test-series.html");
+window.leave=async function(){
+  if(!active)return back();
+  const ok=await skDialog({kind:"leave",title:"Leave this test?",text:"Your answers in this attempt will not be saved.",ok:"Leave Test",cancel:"Stay"});
+  if(ok&&active){active=false;clearInterval(timer);back()}
+};
+window.addEventListener("beforeunload",e=>{if(active){e.preventDefault();e.returnValue=""}});
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ---------- load ---------- */
+Promise.all([SKData.testMeta(),testDb.ref("testQs/"+id).once("value"),SKData.testSeries().then(r=>tsApplySeries(r)).catch(()=>{})]).then(([list,snap])=>{
+  meta=list.find(t=>t.id===id);const q=snap.val();
+  if(!meta||!Array.isArray(q)&&!q)return fail("Test not found.");
+  Q=(Array.isArray(q)?q:Object.values(q)).filter(x=>x&&x.q&&x.o);
+  if(!Q.length)return fail("This test has no questions.");
+  DUR=durOf(meta,Q.length);
+  try{st.style.setProperty("--c",tsSubject(meta.cls,meta.subject)[3])}catch(e){}
+  $("ttl").textContent=meta.chapter;intro();
+}).catch(()=>fail("Could not load the test. Check your internet connection."));
+function fail(m){st.innerHTML=stateHtml(m,"",'<a class="primary" href="test-series.html" style="display:inline-flex;margin-top:12px;width:auto;padding:10px 22px;align-items:center">Test Series</a>')}
+
+/* ---------- last attempt (kept on this device so the answers can be reviewed later) ---------- */
+const lastKey=()=>"sk_ts_last:"+id;
+function saveLast(){try{localStorage.setItem(lastKey(),JSON.stringify({o:A.qs.map(q=>q.i),a:A.qs.map((_,k)=>A.ans[k]===undefined?-1:A.ans[k]),t:R.time,n:Q.length,at:Date.now()}))}catch(e){}}
+function loadLast(){try{const d=JSON.parse(localStorage.getItem(lastKey())||"null");if(!d||d.n!==Q.length||!Array.isArray(d.o)||d.o.some(i=>!Q[i]))return null;return d}catch(e){return null}}
+function score(){
+  const n=A.qs.length;let c=0,w=0;A.qs.forEach((q,k)=>{if(A.ans[k]===undefined)return;A.ans[k]===q.a?c++:w++});
+  return{c,w,s:n-c-w,n,pct:Math.round(c/n*100)};
+}
+function viewLast(){
+  const d=loadLast();if(!d)return;
+  A={qs:d.o.map(i=>{const q=Q[i];return{i,q:q.q,o:q.o.slice(),a:q.a,e:q.e||""}}),ans:d.a.map(x=>x<0?undefined:x)};
+  R=Object.assign(score(),{time:d.t||0,rankHtml:"gone",shown:1,old:1});resultView();
+}
+
+/* ---------- intro (instructions are in Hindi, italic) ---------- */
+function intro(){
+  const sub=tsSubject(meta.cls,meta.subject),b=tsBest()[id],sn=meta.sub?tsSubName(meta.cls,meta.subject,meta.sub):"",hasLast=!!loadLast();
+  const rules=[
+    `पूरा टेस्ट हल करने के लिए कुल <b>${DUR} मिनट</b> का समय निर्धारित है।`,
+    "समय समाप्त होते ही टेस्ट अपने-आप जमा हो जाएगा।",
+    "प्रत्येक सही उत्तर के लिए <b>+1</b> अंक मिलेगा। गलत उत्तर पर कोई अंक नहीं कटेगा।",
+    "आप प्रश्नों के बीच आगे-पीछे जा सकते हैं और किसी प्रश्न को रिव्यू के लिए चिह्नित कर सकते हैं।",
+    "प्रश्न हर बार अलग क्रम में आएँगे।",
+    "परीक्षा के दौरान पेज को बंद या रीफ्रेश न करें।",
+    "टेस्ट जमा करने के बाद आपको अपना परिणाम और गलत प्रश्नों की सूची दिखाई जाएगी।"
+  ];
+  st.innerHTML=`<div class="tq-intro" style="--c:${sub[3]}"><div class="em">${sub[2]}</div><h2>${esc(meta.chapter)}</h2><div class="sub">${esc((TS_CLASSES[meta.cls]||{}).label||"")} • ${esc(sub[1])}${sn?" • "+esc(sn):""}</div>
+  <div class="tq-stats"><div class="tq-stat" style="animation-delay:.05s"><b>${Q.length}</b><small>Questions</small></div><div class="tq-stat" style="animation-delay:.12s"><b>${DUR}</b><small>Minutes</small></div><div class="tq-stat" style="animation-delay:.19s"><b>${b?b.score+"/"+b.total:"—"}</b><small>Best score</small></div></div>
+  <div class="tq-rules-box"><div class="tq-rules-h">निर्देश</div><ol class="tq-rules hi">${rules.map(r=>`<li>${r}</li>`).join("")}</ol></div>
+  <button class="tq-big" id="go">${icon("flag",20)} Start Test</button>
+  ${hasLast?`<button type="button" class="ts-board-btn" id="lastBtn" style="margin-top:12px;width:100%">${icon("list",18)} View last result</button>`:""}
+  <a class="ts-board-btn" id="lb" href="#" style="margin-top:12px">${icon("trophy",18)} Test Leaderboard</a></div>`;
+  $("go").onclick=countdown;$("lb").onclick=e=>{e.preventDefault();boardOnly()};
+  if(hasLast)$("lastBtn").onclick=viewLast;
+}
+function boardOnly(){
+  st.innerHTML=`<div class="section-head"><h2>${esc(meta.chapter)}</h2></div><div id="lbBox"><div class="skel" style="height:200px"></div></div><button class="tq-big" id="bk" style="margin-top:16px">Back</button>`;
+  $("bk").onclick=intro;loadBoard($("lbBox"));
+}
+async function loadBoard(box){
+  try{
+    const s=await testDb.ref("testBoard/"+id).orderByChild("score").limitToLast(60).once("value"),rows=[];
+    s.forEach(c=>{const v=c.val();if(v)rows.push({uid:c.key,name:v.name||"User",score:v.score,total:v.total,time:v.time||0})});
+    rows.sort((a,b)=>b.score-a.score||a.time-b.time);
+    box.innerHTML=lbHtml(rows.slice(0,30).map(r=>({uid:r.uid,name:r.name,main:r.score+"/"+r.total,sub:"⏱ "+fmtDur(r.time)})),me);
+    return rows;
+  }catch(e){box.innerHTML=stateHtml("Could not load the leaderboard","");return[]}
+}
+
+/* ---------- countdown + attempt (one timer for the whole test) ---------- */
+function countdown(){
+  const o=document.createElement("div");o.className="tq-go";document.body.appendChild(o);let n=3;
+  (function t(){ if(n===0){o.innerHTML="<span>GO!</span>";setTimeout(()=>{o.remove();begin()},650);return}o.innerHTML="<span>"+n+"</span>";n--;setTimeout(t,800) })();
+}
+function begin(){
+  A={qs:shuffle(Q.map((q,i)=>i)).map(i=>{const q=Q[i];return{i,q:q.q,o:q.o.slice(),a:q.a,e:q.e||""}}),ans:[],mark:[],i:0};
+  A.total=DUR*60;A.left=A.total;A.t0=Date.now();active=true;
+  clearInterval(timer);timer=setInterval(tick,1000);quiz();
+}
+const CIRC=2*Math.PI*23;
+function tick(){
+  if(!active)return;
+  A.left=Math.max(0,A.total-Math.round((Date.now()-A.t0)/1000));
+  const r=$("ring");if(r){r.querySelector(".fg").style.strokeDashoffset=CIRC*(1-A.left/A.total);r.querySelector("span").textContent=fmtDur(A.left);r.classList.toggle("low",A.left<A.total*.2)}
+  if(A.left<=0){clearInterval(timer);toast("⏰ Time is up — submitting your test");finish()}
+}
+function quiz(){
+  const i=A.i,q=A.qs[i],n=A.qs.length;
+  st.innerHTML=`<div class="tq-head"><div class="tq-ring" id="ring"><svg width="54" height="54"><circle class="bg" cx="27" cy="27" r="23" fill="none" stroke-width="5"/><circle class="fg" cx="27" cy="27" r="23" fill="none" stroke-width="5" stroke-linecap="round" stroke-dasharray="${CIRC}" style="stroke-dashoffset:${CIRC*(1-A.left/A.total)}"/></svg><span>${fmtDur(A.left)}</span></div>
+  <div class="tq-prog"><b>Question ${i+1} / ${n}</b><div class="bar"><i style="width:${(i+1)/n*100}%"></i></div></div><button class="tq-pal" id="pal" aria-label="Question list">${icon("grid",20)}</button></div>
+  <div class="tq-card" key="${i}"><div class="tq-qtag"><span>Q${i+1}</span><small>${n-i-1} left</small><button type="button" class="tq-rep" id="rep" aria-label="Report this question">⚠️</button></div><p class="tq-q">${quizRich(q.q)}</p>${q.o.map((t,k)=>`<button type="button" class="tq-opt${A.ans[i]===k?" sel":""}" data-k="${k}"><span class="k">${LET[k]}</span><span class="tq-t">${quizRich(t)}</span></button>`).join("")}</div>
+  <div class="tq-foot"><button type="button" class="secondary" id="pv" ${i?"":"disabled"}>‹ Previous</button><button type="button" class="secondary mk${A.mark[i]?" on":""}" id="mk">${icon("flag",15)} Review</button><button type="button" class="nx${i===n-1?" sub":""}" id="nx">${i===n-1?"Submit ✓":"Next ›"}</button></div>`;
+  st.querySelector(".tq-card").onclick=e=>{const b=e.target.closest(".tq-opt");if(!b)return;const k=+b.dataset.k;A.ans[i]=A.ans[i]===k?undefined:k;st.querySelectorAll(".tq-opt").forEach(x=>x.classList.toggle("sel",+x.dataset.k===A.ans[i]))};
+  $("rep").onclick=()=>reportQ(q);$("pv").onclick=()=>{A.i--;quiz()};$("mk").onclick=()=>{A.mark[i]=!A.mark[i];$("mk").classList.toggle("on",!!A.mark[i])};
+  $("nx").onclick=()=>{if(i===n-1)confirmSubmit();else{A.i++;quiz()}};$("pal").onclick=palette;
+}
+function palette(){
+  const m=document.createElement("div");m.className="modal-back open dlg";
+  m.innerHTML=`<div class="dlg-card info" role="dialog" aria-modal="true"><h3 style="margin-bottom:4px">Questions</h3><div class="tq-sheet">${A.qs.map((_,k)=>`<button type="button" data-k="${k}" class="${A.mark[k]?"m":A.ans[k]!==undefined?"a":""}${k===A.i?" c":""}">${k+1}</button>`).join("")}</div><div class="tq-legend" style="justify-content:center"><span><i style="background:var(--success)"></i>Answered</span><span><i style="background:#f5b301"></i>Review</span><span><i style="background:var(--surface2);border:1px solid var(--line)"></i>Not answered</span></div><div class="dlg-actions" style="margin-top:16px"><button type="button" class="dlg-no" data-c="1">Close</button><button type="button" class="dlg-yes" data-s="1">Submit</button></div></div>`;
+  const close=()=>{m.classList.add("out");setTimeout(()=>m.remove(),160)};
+  m.onclick=e=>{const b=e.target.closest("button");if(e.target===m||(b&&b.dataset.c)){close();return}if(b&&b.dataset.k){A.i=+b.dataset.k;m.remove();quiz()}if(b&&b.dataset.s){m.remove();confirmSubmit()}};
+  document.body.appendChild(m);
+}
+async function confirmSubmit(){
+  const n=A.qs.length;let ans=0,mk=0;for(let k=0;k<n;k++){if(A.ans[k]!==undefined)ans++;if(A.mark[k])mk++}
+  const ok=await skDialog({kind:"warn",icon:"flag",title:"Submit your test?",text:ans===n?"You have answered every question.":(n-ans)+" question"+(n-ans>1?"s are":" is")+" still unanswered.",chips:[{n:ans,label:"Answered",tone:"g"},{n:n-ans,label:"Unanswered",tone:n-ans?"r":""},{n:mk,label:"For review"}],note:"Your answers cannot be changed after the test is submitted.",ok:"Submit Test",cancel:"Close",locked:true});
+  if(ok&&active)finish();
+}
+
+/* ---------- report a question (kept in admin until it is marked resolved) ---------- */
+const reported=new Set();
+function reportQ(q){
+  if(!q)return;
+  const T=[["wrong_question","Wrong question"],["wrong_option","Wrong option"],["formatting","Formatting issue"],["other","Other"]];
+  let type="";
+  const m=document.createElement("div");m.className="modal-back open dlg";
+  m.innerHTML=`<div class="dlg-card warn rp" role="dialog" aria-modal="true"><div class="dlg-ico">${icon("flag",26)}</div><h3>Report this question</h3><div class="rp-list">${T.map(x=>`<button type="button" class="rp-opt" data-t="${x[0]}"><span class="rp-dot"></span>${x[1]}</button>`).join("")}</div><textarea class="rp-note" rows="3" maxlength="300" placeholder="Describe the problem" style="display:none"></textarea><div class="dlg-actions"><button type="button" class="dlg-no" data-x="1">Close</button><button type="button" class="dlg-yes" data-s="1" disabled>Send Report</button></div></div>`;
+  const send=m.querySelector("[data-s]"),note=m.querySelector(".rp-note");
+  const ok=()=>{send.disabled=!type||(type==="other"&&!note.value.trim())};
+  note.oninput=ok;
+  const close=()=>{m.classList.add("out");setTimeout(()=>m.remove(),160)};
+  m.onclick=async e=>{
+    if(e.target===m||e.target.closest("[data-x]")){close();return}
+    const o=e.target.closest(".rp-opt");
+    if(o){type=o.dataset.t;m.querySelectorAll(".rp-opt").forEach(x=>x.classList.toggle("on",x===o));note.style.display=type==="other"?"block":"none";if(type==="other")note.focus();ok();return}
+    if(e.target.closest("[data-s]")&&type){
+      const key=q.i+":"+type;if(reported.has(key)){close();return toast("Already reported")}
+      send.disabled=true;
+      try{
+        const sb=tsSubject(meta.cls,meta.subject);
+        await testDb.ref("testReports/"+id).push({qi:q.i,q:String(q.q).slice(0,300),opts:q.o.map(x=>String(x).slice(0,200)),a:q.a,type,note:type==="other"?note.value.trim().slice(0,300):"",uid:me,name:getUserName()||me,at:Date.now(),
+          test:String(meta.chapter||"").slice(0,90),cls:meta.cls,clsLabel:(TS_CLASSES[meta.cls]||{}).label||"",subject:meta.subject,subjectLabel:sb[1],sub:meta.sub||"",subLabel:meta.sub?tsSubName(meta.cls,meta.subject,meta.sub):""});
+        reported.add(key);close();toast("Report sent ✓");
+      }catch(err){send.disabled=false;toast("Report could not be sent","error")}
+    }
+  };
+  document.body.appendChild(m);
+}
+
+/* ---------- result ---------- */
+async function finish(){
+  if(!active)return;active=false;clearInterval(timer);
+  document.querySelectorAll(".modal-back.dlg").forEach(x=>x.remove());
+  const time=Math.round((Date.now()-A.t0)/1000);
+  R=Object.assign(score(),{time});
+  tsSaveBest(id,R.c,R.n,time);saveLast();resultView();save();
+}
+async function save(){
+  try{
+    const name=getUserName()||me,ref=testDb.ref("testBoard/"+id+"/"+me),prev=(await ref.once("value")).val();
+    if(!prev||R.c>prev.score||(R.c===prev.score&&R.time<prev.time))await ref.set({name,score:R.c,total:R.n,pct:R.pct,time:R.time,at:Date.now()});
+    if(!prev||R.c>prev.score)await testDb.ref("tsUsers/"+me).transaction(u=>{u=u||{points:0,tests:0};u.name=name;u.points=(u.points||0)+R.c-(prev?prev.score:0);u.tests=(u.tests||0)+(prev?0:1);u.at=Date.now();return u});
+    const box=$("rankBox");
+    if(box){const s=await testDb.ref("testBoard/"+id).orderByChild("score").limitToLast(100).once("value"),rows=[];s.forEach(x=>{const v=x.val();if(v)rows.push({uid:x.key,score:v.score,time:v.time||0})});rows.sort((a,b)=>b.score-a.score||a.time-b.time);const r=rows.findIndex(x=>x.uid===me)+1;
+      if(r){R.rankHtml=`<div class="t">${r===1?"🥇":r===2?"🥈":r===3?"🥉":"🏅"}</div><div>Your rank <b>#${r}</b><br><small style="color:var(--muted)">out of ${rows.length} students</small></div>`;if($("rankBox"))$("rankBox").innerHTML=R.rankHtml}else{R.rankHtml="gone";box.remove()}}
+  }catch(e){R.rankHtml='<div class="t">⚠️</div><div style="color:var(--muted);font-size:12px">Your score could not be saved to the leaderboard.</div>';const box=$("rankBox");if(box)box.innerHTML=R.rankHtml}
+}
+const kindOf=k=>A.ans[k]===undefined?"s":A.ans[k]===A.qs[k].a?"g":"r";
+function resultView(tab,flt,focus){
+  tab=tab||"res";flt=flt||"all";
+  const seg=`<div class="seg"><button data-t="res" class="${tab==="res"?"on":""}">Result</button><button data-t="rev" class="${tab==="rev"?"on":""}">Answers</button><button data-t="lb" class="${tab==="lb"?"on":""}">Leaderboard</button></div>`;
+  let body="";
+  if(tab==="res"){
+    const msg=R.pct>=80?["Excellent! 🎉","You are a top performer!"]:R.pct>=60?["Great job! 👏","A little more practice and it's perfect."]:R.pct>=40?["Good try! 💪","Check the answers and learn from your mistakes."]:["Keep going 🌱","Revise the chapter and try again."];
+    const miss=A.qs.map((q,k)=>[k,kindOf(k)]).filter(x=>x[1]!=="g");
+    body=`<div class="rs-hero"><canvas id="cf"></canvas><div class="rs-ring"><svg width="150" height="150"><defs><linearGradient id="rsg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5B7CFA"/><stop offset="1" stop-color="#34B47C"/></linearGradient></defs><circle class="bg" cx="75" cy="75" r="66" fill="none" stroke-width="12"/><circle class="fg" cx="75" cy="75" r="66" fill="none" stroke-width="12" stroke-linecap="round" stroke-dasharray="${2*Math.PI*66}" stroke-dashoffset="${2*Math.PI*66}"/></svg><div class="mid"><b id="sc">0</b><small>/ ${R.n} • ${R.pct}%</small></div></div><div class="rs-msg">${msg[0]}</div><div class="rs-sub">${msg[1]}</div></div>
+    <div class="rs-grid"><div style="animation-delay:.1s"><b style="color:var(--success)">${R.c}</b><small>Correct</small></div><div style="animation-delay:.18s"><b style="color:var(--danger)">${R.w}</b><small>Wrong</small></div><div style="animation-delay:.26s"><b>${R.s}</b><small>Skipped</small></div><div style="animation-delay:.34s"><b>${fmtDur(R.time)}</b><small>Time</small></div></div>
+    <div class="rs-wrong">${miss.length?`<div class="rs-wh"><b>Questions to review</b><small>${R.w} wrong${R.s?" • "+R.s+" skipped":""} — tap a number to see the correct answer</small></div><div class="rs-chips">${miss.map(([k,t])=>`<button type="button" class="rs-chip ${t==="r"?"r":"s"}" data-k="${k}" data-f="${t==="r"?"wrong":"skip"}">Q${k+1}</button>`).join("")}</div>${R.w?`<button type="button" class="tq-big rs-wbtn" id="vw">${icon("list",18)} View wrong answers (${R.w})</button>`:`<button type="button" class="tq-big rs-wbtn" id="vw">${icon("list",18)} View skipped questions (${R.s})</button>`}`:`<div class="rs-perfect">🎉 No mistakes — every answer was correct!</div><button type="button" class="secondary" id="vw" style="width:100%;min-height:44px;margin-top:10px">View all answers</button>`}</div>
+    <div class="rs-rank" id="rankBox"><div class="t">⏳</div><div style="color:var(--muted)">Calculating your rank…</div></div>
+    <div style="display:flex;gap:10px"><button class="secondary" id="rt" style="flex:1;min-height:46px">${icon("refresh",16)} Retake</button><button class="tq-big" id="bk2" style="flex:1.4;font-size:14px">Tests list</button></div>`;
+  }else if(tab==="rev"){
+    const cnt={all:A.qs.length,wrong:R.w,skip:R.s,right:R.c},FL=[["all","All"],["wrong","Wrong"],["skip","Skipped"],["right","Correct"]];
+    const keep=k=>flt==="all"||(flt==="wrong"&&kindOf(k)==="r")||(flt==="skip"&&kindOf(k)==="s")||(flt==="right"&&kindOf(k)==="g");
+    const chips=`<div class="rv-filter">${FL.map(f=>`<button type="button" data-f="${f[0]}" class="${flt===f[0]?"on":""}">${f[1]} <span>${cnt[f[0]]}</span></button>`).join("")}</div>`;
+    const cards=A.qs.map((q,k)=>{
+      if(!keep(k))return"";
+      const u=A.ans[k],kd=kindOf(k),tag=kd==="s"?'<span class="tag s">Skipped</span>':kd==="g"?'<span class="tag g">Correct</span>':'<span class="tag r">Wrong</span>';
+      return `<div class="rv ${kd==="s"?"skq":kd==="g"?"okq":"noq"}" id="rq-${k}"><div class="qn">Q${k+1} ${tag}<button type="button" class="tq-rep" data-r="${k}" aria-label="Report this question">⚠️</button></div><p class="tq-q" style="font-size:14px">${quizRich(q.q)}</p>${q.o.map((t,j)=>`<div class="tq-opt${j===q.a?" ok":j===u?" bad":""}"><span class="k">${LET[j]}</span><span class="tq-t">${quizRich(t)}</span>${j===q.a?'<em class="rv-lbl g">Correct answer</em>':j===u?'<em class="rv-lbl r">Your answer</em>':""}</div>`).join("")}${kd==="s"?'<div class="rv-note">You skipped this question.</div>':""}${q.e?`<div class="ex">💡 ${quizRich(q.e)}</div>`:""}</div>`}).join("");
+    body=chips+(cards||`<div class="state"><b>Nothing here</b>${flt==="wrong"?"You had no wrong answers. Great!":"No questions in this list."}</div>`);
+  }else body='<div id="lbBox"><div class="skel" style="height:200px"></div></div>';
+  st.innerHTML=seg+body;
+  st.querySelector(".seg").onclick=e=>{const b=e.target.closest("button");if(b&&b.dataset.t!==tab)resultView(b.dataset.t)};
+  if(tab==="res"){
+    requestAnimationFrame(()=>{const f=st.querySelector(".rs-ring .fg");setTimeout(()=>{f.style.strokeDashoffset=2*Math.PI*66*(1-R.c/R.n)},60);countUp($("sc"),R.c,R.shown?1:1300);if(R.pct>=60&&!R.shown)setTimeout(()=>confetti($("cf")),500);R.shown=1});
+    $("rt").onclick=()=>location.reload();$("bk2").onclick=back;
+    $("vw").onclick=()=>resultView("rev",R.w?"wrong":R.s?"skip":"all");
+    st.querySelectorAll(".rs-chip").forEach(b=>b.onclick=()=>resultView("rev",b.dataset.f,+b.dataset.k));
+    if(R.rankHtml==="gone")$("rankBox").remove();else if(R.rankHtml)$("rankBox").innerHTML=R.rankHtml;
+  }
+  if(tab==="rev"){
+    st.querySelectorAll(".tq-rep").forEach(b=>b.onclick=()=>reportQ(A.qs[+b.dataset.r]));
+    st.querySelectorAll(".rv-filter button").forEach(b=>b.onclick=()=>resultView("rev",b.dataset.f));
+  }
+  if(tab==="lb")loadBoard($("lbBox"));
+  if(tab==="rev"&&focus!=null){const el=$("rq-"+focus);if(el){el.scrollIntoView({block:"start"});el.classList.add("flash");return}}
+  scrollTo(0,0);
+}
+});
+</script></body></html>

@@ -1,0 +1,44 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Course - SK Education</title><meta name="theme-color" content="#0B0E15"><meta name="description" content="SK Education - free study material, courses and support chat."><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://educationqpp-default-rtdb.firebaseio.com" crossorigin><link rel="preconnect" href="https://testing-5ce76-default-rtdb.firebaseio.com" crossorigin><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"><script src="tg.js"></script><script src="data.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script defer src="config.js"></script><script defer src="nav.js"></script></head>
+<body><div class="app"><header class="topbar"><div class="brand"><img src="icons/logo-96.png" width="30" height="30" alt="SK" onerror="this.onerror=null;this.src='icons/icon-192.png'"><span id="title">Course</span></div><button class="icon-btn" onclick="nav('courses.html')">←</button></header><main class="content"><div class="chead"><div class="thumb"><img id="banner" alt="" fetchpriority="high" decoding="async"></div><div class="info"><h1 id="name">Loading...</h1><p id="desc"></p><div class="status-line" id="status"></div><button id="enroll" class="primary" type="button">Enroll Course</button></div></div>
+<div class="section-head"><h2>Subjects</h2></div><div class="subj-list" id="cats"></div></main><nav class="bottom-nav"><button class="nav-item" onclick="nav('index.html')"><span>⌂</span>HOME</button><button class="nav-item active"><span>▣</span>MY COURSES</button><button type="button" class="nav-item" onclick="nav('test-series.html')"><span>✎</span>TEST SERIES</button><button class="nav-item" onclick="nav('chat.html')"><span>💬</span>CHAT</button><button class="nav-item" onclick="nav('profile.html')"><span>●</span>PROFILE</button></nav></div><div id="toast"></div>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+if(!requireApp())return;
+idle(watchBlocked,2000);
+const id=new URLSearchParams(location.search).get("batch")||"1",cat=getCategory()||"10",$=x=>document.getElementById(x);
+let batch=null,isEnr=false;
+function renderCats(counts){
+  $("cats").innerHTML=Object.entries(CATEGORIES).map(([k,v])=>{
+    const c=counts&&counts[k]||{pdf:0,video:0,dpp:0};
+    const sub=counts?`📄 ${c.pdf} · 🎥 ${c.video} · 📝 ${c.dpp}`:"…";
+    return `<a class="subj" href="subcategory.html?batch=${encodeURIComponent(id)}&cat=${k}"><span class="s-ico">${CATEGORY_ICONS[k]}</span><span class="s-txt"><b>${esc(v)}</b><small>${sub}</small></span><span class="chev">›</span></a>`}).join("");
+}
+renderCats(null);
+function setEnrolled(v){
+  isEnr=v;const eb=$("enroll");
+  if(v){eb.textContent="✓ Enrolled";eb.disabled=true;$("status").innerHTML='<span class="ok">✓ You are enrolled in this course</span>'}
+  else{eb.textContent="Enroll Course";eb.disabled=false;$("status").textContent="Enroll to save this course in My Courses."}
+}
+function paint(batches){
+  const b=batches[id];
+  if(!b){$("name").textContent="Course not found";$("desc").textContent="This course may have been removed.";$("enroll").style.display="none";$("status").textContent="";return}
+  batch=b;
+  $("title").textContent=b.name;document.title=b.name+" - SK Education";
+  $("name").textContent=(b.icon||"📚")+" "+b.name;$("desc").textContent=b.description||"";
+  const u=thumbOf(id,b);if($("banner").getAttribute("src")!==u)$("banner").src=u;
+  $("banner").onerror=function(){this.onerror=null;this.src=APP_LOGO;this.classList.add("fb")};
+}
+loadThumbs(()=>{if(window.BATCHES)paint(window.BATCHES)});
+loadBatches(paint).then(paint).catch(()=>{$("name").textContent="Could not load the course";$("desc").innerHTML=stateHtml("","Check your internet connection.",retryBtn())});
+SKData.pdfs(rows=>{const c={};rows.forEach(x=>{if(x.b===String(id)&&x.c){(c[x.c]=c[x.c]||{pdf:0,video:0,dpp:0})[matKind(x)]++}});renderCats(c)}).catch(()=>renderCats({}));
+setEnrolled(false);
+$("enroll").onclick=async()=>{
+  if(!batch||isEnr)return;$("enroll").disabled=true;$("enroll").textContent="Enrolling...";
+  try{await saveEnrollment(id,batch,"enroll");setEnrolled(true);toast("Enrolled ✓");haptic("ok")}
+  catch(e){setEnrolled(false);toast("Could not enroll. Please try again.","error");haptic("error")}
+};
+const c0=getEnrCache();if(c0&&c0[cat+"_"+id])setEnrolled(true);
+loadEnrollments(all=>{setEnrolled(!!all[cat+"_"+id])}).catch(()=>{});
+
+});
+</script></body></html>

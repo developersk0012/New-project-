@@ -1,0 +1,90 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sign Up - SK Education</title><meta name="theme-color" content="#0B0E15"><meta name="description" content="SK Education - free study material, courses and support chat."><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://educationqpp-default-rtdb.firebaseio.com" crossorigin><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css">
+<script src="tg.js"></script><script src="data.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script defer src="config.js"></script>
+<style>
+.login-theme{position:fixed;right:15px;top:15px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(127,127,127,.35);background:var(--surface,#111827);color:var(--text,#fff);font-size:18px}
+.switch-link{display:block;margin-top:14px;font-size:12.5px;color:var(--muted)}
+.switch-link a{color:var(--brand1,#5b55e8);font-weight:700;text-decoration:none}
+</style></head>
+<body><button class="login-theme" id="themeBtn" type="button">☀️</button>
+<div class="login-page"><div class="login-card">
+<img src="icons/icon-192.png" width="96" height="96" alt="SK Education">
+<h1>SK Education</h1>
+<form id="signupForm">
+<div class="field"><label>Name</label><input id="suName" required autocomplete="name" placeholder="Name"></div>
+<div class="field"><label>New User ID</label><input id="suId" required autocomplete="username" maxlength="24" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="e.g. user@q244, user1234, 1245"><div class="field-hint" id="idHint">Any letters, numbers or symbols. Only spaces are not allowed.</div></div>
+<div class="field"><label>Email/Number</label><input id="suContact" required placeholder="Email or number"></div>
+<div class="field"><label>Password</label><div class="pw-wrap"><input id="suPassword" type="password" required autocomplete="new-password" maxlength="128"><button type="button" class="pw-eye" id="pwEye" aria-label="Show password"></button></div><div class="pw-meter" id="pwMeter" data-s="0"><i></i><i></i><i></i><i></i></div></div>
+<div class="field"><label>Confirm Password</label><input id="suConfirm" type="password" required autocomplete="new-password" placeholder="Confirm password"></div>
+<button class="primary" type="submit" id="signupBtn">Create Account</button>
+</form>
+<span class="switch-link">Already have an account? <a href="login.html">Login here</a></span>
+</div></div><div id="toast"></div>
+<script src="nav.js" defer></script><script>
+document.addEventListener("DOMContentLoaded",function(){
+
+themeInit();
+const themeBtn=document.getElementById("themeBtn");
+function syncTheme(){themeBtn.textContent=document.documentElement.dataset.theme==="dark"?"☀️":"🌙"}
+syncTheme();themeBtn.onclick=()=>{toggleTheme();syncTheme()};
+if(isLoggedIn()) location.replace("index.html");
+const idEl=document.getElementById("suId"),idHint=document.getElementById("idHint");
+idEl.addEventListener("input",()=>{
+  const had=/\s/.test(idEl.value);
+  if(had)idEl.value=idEl.value.replace(/\s+/g,"");
+  const err=idEl.value?idIssue(idEl.value):"";
+  idHint.textContent=had?"Spaces are not allowed in User ID.":(err&&idEl.value.length>=1&&[...idEl.value].length>=4?err:"Any letters, numbers or symbols. Only spaces are not allowed.");
+  idHint.style.color=had?"var(--danger)":"";
+});
+const eye=document.getElementById("pwEye"),pi=document.getElementById("suPassword");
+eye.innerHTML=icon("eye",18);eye.onclick=()=>{const h=pi.type==="password";pi.type=h?"text":"password";eye.innerHTML=icon(h?"eyeoff":"eye",18)};
+pi.addEventListener("input",()=>document.getElementById("pwMeter").dataset.s=passwordStrength(pi.value));
+document.getElementById("signupForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const name=document.getElementById("suName").value.trim();
+ const id=document.getElementById("suId").value.trim();
+ const contact=document.getElementById("suContact").value.trim();
+ const pw=document.getElementById("suPassword").value;
+ const confirm=document.getElementById("suConfirm").value;
+ if(!name||!id||!contact||!pw||!confirm)return;
+ if(pw!==confirm){toast("❌ Passwords do not match.","error");return}
+ const idErr=idIssue(id);if(idErr){toast("❌ "+idErr,"error");return}
+ const issue=passwordIssue(pw,id,name);if(issue){toast("❌ "+issue,"error");return}
+ if(lockLeft(["signup"])>0){toast("⏳ Please try again after some time.","error");return}
+ const btn=document.getElementById("signupBtn");btn.disabled=true;btn.textContent="Creating...";
+ let stage="check-id",created=false;
+ try{
+   const ref=accountsRef(id);
+   const snap=await withTimeout(ref.once("value"),12000);
+   if(snap.val()) throw new Error("EXISTS");
+   stage="write-account";
+   const rec=await makePasswordRecord(pw);
+   await withTimeout(ref.set({name,userId:id,contact,...rec,createdAt:new Date().toISOString()}),12000);
+   created=true;
+   lockFail("signup",4); // max ~4 new accounts per device per hour
+   setSession(id,name);
+   // Account ban chuka hai: ab block-check / activity-log slow ho to bhi signup fail nahi karna
+   stage="block-check";
+   try{if(await isBlocked()){logoutSession();throw new Error("BLOCKED")}}catch(e){if(e.message==="BLOCKED")throw e}
+   stage="register-user";
+   try{await registerUser(true)}catch(e){}
+   notifyTelegram("signup",{userName:name,loginId:id}).catch(()=>{});
+   location.replace("index.html");
+ }catch(err){
+   logoutSession();
+   const known=err.message==="EXISTS"||err.message==="BLOCKED";
+   if(!known){ // Admin ko Telegram alert: kis step par aur kyun fail hua
+     const ex=new Error("Signup failed at "+stage+": "+(err&&err.message||err));ex.code=err&&err.code;
+     try{saveWebsiteError(ex,"signup","signup.html")}catch(e2){}
+   }
+   const msg=err.message==="EXISTS"?"❌ This User ID is already taken. Try another one.":
+     err.message==="BLOCKED"?"🚫 Your account is blocked.":
+     (authFailMsg(err)||"❌ Could not create the account. Please try again or ask the admin for an ID and password.");
+   toast(msg,"error");
+   btn.disabled=false;btn.textContent="Create Account";
+ }
+});
+
+});
+</script></body></html>

@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Subject - SK Education</title><meta name="theme-color" content="#0B0E15"><meta name="description" content="SK Education - free study material, courses and support chat."><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://educationqpp-default-rtdb.firebaseio.com" crossorigin><link rel="preconnect" href="https://testing-5ce76-default-rtdb.firebaseio.com" crossorigin><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"><script src="tg.js"></script><script src="data.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script defer src="config.js"></script><script defer src="nav.js"></script></head>
+<body><div class="app"><header class="topbar"><div class="brand"><img src="icons/logo-96.png" width="30" height="30" alt="SK" onerror="this.onerror=null;this.src='icons/icon-192.png'"><span id="title">Subject</span></div><button class="icon-btn" onclick="history.back()">←</button></header><main class="content"><div class="kind-tabs" id="kindTabs"><button type="button" class="kind-tab active" data-k="pdf">📄 PDF<small>0</small></button><button type="button" class="kind-tab" data-k="video">🎥 Video<small>0</small></button><button type="button" class="kind-tab" data-k="dpp">📝 DPP<small>0</small></button></div>
+<input class="search" id="q" type="search" placeholder="Search..." autocomplete="off" style="margin-bottom:12px">
+<div class="mat-list" id="list"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div><div id="more"></div></main><nav class="bottom-nav"><button class="nav-item" onclick="nav('index.html')"><span>⌂</span>HOME</button><button class="nav-item active"><span>▣</span>MY COURSES</button><button type="button" class="nav-item" onclick="nav('test-series.html')"><span>✎</span>TEST SERIES</button><button class="nav-item" onclick="nav('chat.html')"><span>💬</span>CHAT</button><button class="nav-item" onclick="nav('profile.html')"><span>●</span>PROFILE</button></nav></div><div id="toast"></div>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+if(!requireApp())return;
+idle(watchBlocked,2000);
+const params=new URLSearchParams(location.search),batchId=params.get("batch")||"1",catId=params.get("cat")||"";
+document.getElementById("title").textContent=(CATEGORY_ICONS[catId]||"📖")+" "+(CATEGORIES[catId]||"Subject");
+let all=[],kind="pdf",q="",loaded=false,shown=30,picked=false,t=null;
+const el=document.getElementById("list"),more=document.getElementById("more");
+function render(){
+  if(!loaded)return;
+  const cnt={pdf:0,video:0,dpp:0};all.forEach(x=>cnt[matKind(x)]++);
+  if(!picked&&!cnt[kind]){const f=["pdf","video","dpp"].find(k=>cnt[k]);if(f)kind=f}
+  document.querySelectorAll(".kind-tab").forEach(b=>{b.classList.toggle("active",b.dataset.k===kind);b.querySelector("small").textContent=cnt[b.dataset.k]});
+  const K=KINDS[kind];
+  const rows=all.filter(x=>matKind(x)===kind&&(!q||((x.ti||"")+" "+(x.d||"")).toLowerCase().includes(q)));
+  el.innerHTML=rows.slice(0,shown).map(x=>`<div class="mat"><div class="m-ico">${K.ico}</div><div class="m-txt"><h3>${esc(x.ti||"Untitled")}</h3>${x.d?`<p>${esc(x.d)}</p>`:""}${x.a==="paid"?'<span class="paid">💎 Paid</span>':""}</div><a class="primary go" href="${esc(x.f)}" target="_blank" rel="noopener">${K.btn}</a></div>`).join("")||stateHtml("No "+K.label+" available yet",q?"No results for this search.":"New material will be added soon.");
+  more.innerHTML=rows.length>shown?`<div class="state"><button type="button" class="secondary" id="moreBtn">Show more (${rows.length-shown})</button></div>`:"";
+}
+more.addEventListener("click",e=>{if(e.target.id==="moreBtn"){shown+=30;render()}});
+document.querySelectorAll(".kind-tab").forEach(b=>b.onclick=()=>{picked=true;kind=b.dataset.k;shown=30;render()});
+document.getElementById("q").addEventListener("input",e=>{clearTimeout(t);t=setTimeout(()=>{q=e.target.value.trim().toLowerCase();shown=30;render()},150)});
+function take(rows){all=rows.filter(x=>x.b===String(batchId)&&x.c===catId);loaded=true;render()}
+SKData.pdfs(take).then(take).catch(()=>{el.innerHTML=stateHtml("Could not load materials","Check your internet connection.",retryBtn())});
+
+});
+</script></body></html>

@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Mod APKs - SK Education</title><meta name="theme-color" content="#0B0E15"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://educationqpp-default-rtdb.firebaseio.com" crossorigin><link rel="preconnect" href="https://testing-5ce76-default-rtdb.firebaseio.com" crossorigin><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"><script src="tg.js"></script><script src="data.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script defer src="config.js"></script><script defer src="nav.js"></script></head>
+<body><div class="app"><header class="topbar"><div class="brand"><img src="icons/logo-96.png" width="30" height="30" alt="SK"><span>Mod APKs</span></div><button class="icon-btn" onclick="nav('index.html')">←</button></header><main class="content"><div class="hero-note"><span>⚠️</span><div><b>Dhyan dein:</b> These are third-party files. Check them yourself before installing — SK Education does not guarantee them. Install only from trusted sources.</div></div><input class="search" id="search" type="search" placeholder="Search..." autocomplete="off"><div class="mod-grid" id="list"><div class="skel" style="height:210px"></div><div class="skel" style="height:210px"></div></div></main><nav class="bottom-nav"><button class="nav-item" onclick="nav('index.html')"><span>⌂</span>HOME</button><button class="nav-item" onclick="nav('my-courses.html')"><span>▣</span>MY COURSES</button><button type="button" class="nav-item" onclick="nav('test-series.html')"><span>✎</span>TEST SERIES</button><button class="nav-item" onclick="nav('chat.html')"><span>💬</span>CHAT</button><button class="nav-item" onclick="nav('profile.html')"><span>●</span>PROFILE</button></nav></div><div id="toast"></div>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+if(!requireApp())return;
+idle(watchBlocked,2000);
+const list=document.getElementById("list");let items=null,t=null;
+function card(x){
+  const url=safeUrl(x.url),ic=safeUrl(x.icon)||APP_LOGO;
+  return `<article class="mcard apk"><div class="mhead"><div class="mlogo"><img src="${esc(ic)}" loading="lazy" decoding="async" alt="" onerror="this.onerror=null;this.src='${APP_LOGO}';this.classList.add('fb')"></div><div class="mtitle"><h3>${esc(x.name)}</h3><small>Android • Mod APK</small></div></div>
+  <div class="mpills">${x.version?`<span class="mpill">v${esc(String(x.version).replace(/^v/i,""))}</span>`:""}${x.size?`<span class="mpill g">${esc(x.size)}</span>`:""}${x.pin?'<span class="mpill y">★ Featured</span>':""}</div>
+  ${x.about?`<p class="mabout">${esc(x.about)}</p>${x.about.length>110?'<button type="button" class="mmore">Read more</button>':""}`:""}
+  ${url?`<a class="mbtn" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${icon("download",18)} Download APK</a>`:""}</article>`;
+}
+function render(){
+  if(!items)return;
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  const r=items.filter(x=>(x.name+" "+(x.about||"")).toLowerCase().includes(q));
+  list.innerHTML=r.length?r.map(card).join(""):'<div style="grid-column:1/-1">'+stateHtml(items.length?"Nothing found":"No APKs yet",items.length?"Try a different search.":"New Mod APKs are coming soon.")+'</div>';
+}
+list.addEventListener("click",e=>{const b=e.target.closest(".mmore");if(!b)return;const p=b.previousElementSibling;p.classList.toggle("open");b.textContent=p.classList.contains("open")?"Show less":"Read more"});
+document.getElementById("search").addEventListener("input",()=>{clearTimeout(t);t=setTimeout(render,120)});
+SKData.modApks(d=>{items=d;render()}).then(d=>{items=d;render()}).catch(()=>{list.innerHTML='<div style="grid-column:1/-1">'+stateHtml("Could not load","Check your internet connection.",retryBtn())+'</div>'});
+});
+</script></body></html>

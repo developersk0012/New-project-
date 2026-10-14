@@ -1,10 +1,8 @@
 {
-  "name": "telegram-account-quiz-publisher",
-  "version": "1.0.0",
+  "name": "sk-education",
   "private": true,
-  "description": "Personal Telegram account MTProto quiz publisher",
-  "main": "server.js",
-  "scripts": {"start": "node server.js"},
-  "engines": {"node": ">=22"},
-  "dependencies": {"express": "^5.1.0", "teleproto": "^1.229.1"}
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  }
 }

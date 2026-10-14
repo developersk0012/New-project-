@@ -1,0 +1,77 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Login - SK Education</title><meta name="theme-color" content="#0B0E15"><meta name="description" content="SK Education - free study material, courses and support chat."><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://educationqpp-default-rtdb.firebaseio.com" crossorigin><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css">
+<script src="tg.js"></script><script src="data.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script defer src="config.js"></script>
+<style>
+.login-theme{position:fixed;right:15px;top:15px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(127,127,127,.35);background:var(--surface,#111827);color:var(--text,#fff);font-size:18px}
+.switch-link{display:block;margin-top:14px;font-size:12.5px;color:var(--muted)}
+.switch-link a{color:var(--brand1,#5b55e8);font-weight:700;text-decoration:none}
+</style></head>
+<body><button class="login-theme" id="themeBtn" type="button">☀️</button>
+<div class="login-page"><div class="login-card">
+<img src="icons/icon-192.png" width="96" height="96" alt="SK Education">
+<h1>SK Education</h1>
+<form id="loginForm">
+<div class="field"><label>User ID</label><input id="loginId" required autocomplete="username" placeholder="User ID"></div>
+<div class="field"><label>Password</label><div class="pw-wrap"><input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Password" maxlength="128"><button type="button" class="pw-eye" id="pwEye" aria-label="Show password"></button></div></div>
+<div class="lock-note" id="lockNote" role="alert"></div>
+<button class="primary" type="submit" id="loginBtn">Login</button>
+</form>
+<span class="switch-link">New user? <a href="signup.html">Create an account</a></span>
+</div></div><div id="toast"></div>
+<script src="nav.js" defer></script><script>
+document.addEventListener("DOMContentLoaded",function(){
+
+themeInit();
+const themeBtn=document.getElementById("themeBtn");
+function syncTheme(){themeBtn.textContent=document.documentElement.dataset.theme==="dark"?"☀️":"🌙"}
+syncTheme();themeBtn.onclick=()=>{toggleTheme();syncTheme()};
+if(isLoggedIn()) location.replace("index.html");
+const eye=document.getElementById("pwEye"),pi=document.getElementById("loginPassword");
+eye.innerHTML=icon("eye",18);eye.onclick=()=>{const h=pi.type==="password";pi.type=h?"text":"password";eye.innerHTML=icon(h?"eyeoff":"eye",18)};
+let lockT=null;
+function showLock(){
+  const n=document.getElementById("lockNote"),names=["id:"+accountKey(document.getElementById("loginId").value),"dev"];
+  clearInterval(lockT);
+  const tick=()=>{const l=lockLeft(names);if(l<=0){n.classList.remove("show");clearInterval(lockT);return}n.textContent="🔒 Too many wrong attempts. "+fmtWait(l)+" then try again.";n.classList.add("show")};
+  tick();lockT=setInterval(tick,1000);
+}
+document.getElementById("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const id=document.getElementById("loginId").value.trim(),pw=document.getElementById("loginPassword").value;
+ if(!id||!pw)return;
+ const names=["id:"+accountKey(id),"dev"];
+ if(lockLeft(names)>0){showLock();return}
+ const btn=document.getElementById("loginBtn");btn.disabled=true;btn.textContent="Checking...";
+ let stage="read-account";
+ try{
+   const snap=await withTimeout(accountsRef(id).once("value"),12000);
+   const acc=snap.val();
+   if(!acc){await pbkdf2(pw,"AAAAAAAAAAAAAAAAAAAAAA==",PW_ITER);throw new Error("BAD")} // same delay whether or not the ID exists
+   stage="check-password";
+   const chk=await checkPassword(pw,acc);
+   if(!chk.ok) throw new Error("BAD");
+   names.forEach(lockClear);
+   if(chk.legacy){try{await withTimeout(accountsRef(id).update(await makePasswordRecord(pw)))}catch(e){}} // silently upgrade old SHA-256 hash
+   setSession(id,acc.name);
+   stage="block-check";
+   try{if(await isBlocked()){logoutSession();throw new Error("BLOCKED")}}catch(e){if(e.message==="BLOCKED")throw e}
+   stage="register-user";
+   try{await registerUser(true)}catch(e){}
+   notifyTelegram("login",{userName:acc.name,loginId:id}).catch(()=>{});
+   location.replace("index.html");
+ }catch(err){
+   logoutSession();
+   if(err.message==="BAD"){lockFail(names[0],5);lockFail("dev",12)}
+   else if(err.message!=="BLOCKED"){
+     const ex=new Error("Login failed at "+stage+": "+(err&&err.message||err));ex.code=err&&err.code;
+     try{saveWebsiteError(ex,"login","login.html")}catch(e2){}
+   }
+   if(lockLeft(names)>0)showLock();
+   else toast(err.message==="BLOCKED"?"🚫 Your account is blocked.":err.message==="BAD"?"❌ Wrong User ID or Password.":(authFailMsg(err)||"❌ Could not log in."),"error");
+   btn.disabled=false;btn.textContent="Login";
+ }
+});
+
+});
+</script></body></html>

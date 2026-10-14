@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  <title>Error Handler - SK Education</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script src="tg.js"></script><script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script src="data.js"></script><script src="config.js"></script>
+  <script src="nav.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><img src="icons/icon-512.png" alt="SK Education"><span>Website Errors</span></div>
+      <button type="button" class="icon-btn" onclick="history.back()">←</button>
+    </header>
+    <main class="content">
+      <div class="page-card">
+        <h2>🛠️ Website Error Report</h2>
+        <p id="status" style="color:var(--muted);font-size:12px">Checking errors...</p>
+        <div id="chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px"></div>
+        <div id="errors"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+          <button type="button" class="secondary" id="refreshErrors">🔄 Refresh</button>
+          <button type="button" class="secondary" id="testErr">🧪 Telegram test</button>
+          <button type="button" class="secondary" id="healBtn">♻️ Clear cache</button>
+          <button type="button" class="danger" id="clearErrors">🗑️ Clear errors</button>
+          <button type="button" class="primary" id="copyErrors" style="width:auto">📋 Copy report</button>
+        </div>
+      </div>
+      <div class="page-card"><h2>🩺 System check</h2><div id="diag"></div></div>
+    </main>
+  </div>
+  <div id="toast"></div>
+  <script>
+    const EH_KEY="sk_website_errors";
+    let ehFilter="all";
+    const ehGet=()=>{try{return JSON.parse(localStorage.getItem(EH_KEY)||"[]")}catch(e){return[]}};
+    const ehAgo=t=>{const s=Math.round((Date.now()-new Date(t))/1000);return s<60?s+"s ago":s<3600?Math.round(s/60)+" min ago":s<86400?Math.round(s/3600)+" hours ago":Math.round(s/86400)+" days ago"};
+    const EH_COL={javascript:"#EF4444",promise:"#F59E0B",api:"#8B5CF6",resource:"#06B6D4",test:"#34B47C"};
+    function ehRender(){
+      const all=ehGet(),list=all.filter(e=>ehFilter==="all"||e.type===ehFilter),box=document.getElementById("errors"),st=document.getElementById("status");
+      const types=[...new Set(all.map(e=>e.type))];
+      document.getElementById("chips").innerHTML=["all",...types].map(t=>`<button type="button" class="${t===ehFilter?"primary":"secondary"}" data-f="${t}" style="width:auto;min-height:32px;padding:0 12px;font-size:12px">${t==="all"?"All ("+all.length+")":t+" ("+all.filter(e=>e.type===t).length+")"}</button>`).join("");
+      st.textContent=all.length?`❌ ${all.length} unique errors — ${all.reduce((a,e)=>a+(e.count||1),0)} occurrences in total`:"✅ No errors found.";
+      box.innerHTML=list.length?list.slice().reverse().map(e=>`<div class="admin-row" style="display:block;margin-top:10px;border-left:4px solid ${EH_COL[e.type]||"#888"}">
+        <div style="display:flex;gap:8px;align-items:flex-start;justify-content:space-between"><b style="overflow-wrap:anywhere">${esc(e.message||"Unknown error")}</b>${e.count>1?`<span class="mpill y" style="flex-shrink:0">x${e.count}</span>`:""}</div>
+        <small style="display:block;color:var(--muted);margin-top:5px;line-height:1.6"><span class="mpill" style="background:${EH_COL[e.type]||"#888"}22;color:${EH_COL[e.type]||"#888"}">${esc(e.type||"error")}${e.code?" • "+esc(e.code):""}</span> ${ehAgo(e.time)}<br>📄 ${esc(e.page||"")}<br>📍 ${esc(e.source||"")}</small>
+        ${(e.crumbs&&e.crumbs.length)?`<details style="margin-top:8px"><summary style="font-size:12px;color:var(--brand1);cursor:pointer">🧭 What happened before the error</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted);font-size:10.5px;margin:6px 0 0">${esc(e.crumbs.join("\n"))}</pre></details>`:""}
+        ${e.stack?`<details style="margin-top:6px"><summary style="font-size:12px;color:var(--brand1);cursor:pointer">🧵 Stack trace</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted);font-size:10px;margin:6px 0 0">${esc(e.stack)}</pre></details>`:""}</div>`).join(""):'<div class="empty">No errors in this filter</div>';
+    }
+    async function ehDiag(){
+      const rows=[];
+      rows.push(["Internet",navigator.onLine?"✅ Online":"❌ Offline"]);
+      rows.push(["data.js",window.SKData&&typeof SKData.modApks==="function"&&typeof SKData.testMeta==="function"?"✅ Latest (v"+SKData.VER+")":"❌ Old cached version — press 'Clear cache'"]);
+      rows.push(["Firebase SDK",window.firebase?"✅ Loaded":"❌ Failed to load"]);
+      try{const r=await fetch("/api/admin-verify",{cache:"no-store"});rows.push(["Server /api",r.status===401||r.ok?"✅ Working":"⚠️ HTTP "+r.status])}catch(e){rows.push(["Server /api","❌ Could not connect"])}
+      const sw=navigator.serviceWorker&&await navigator.serviceWorker.getRegistrations().catch(()=>[]);rows.push(["Service Worker",sw&&sw.length?"✅ Active":"— No"]);
+      document.getElementById("diag").innerHTML=rows.map(r=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px"><span style="color:var(--muted)">${r[0]}</span><span style="text-align:right">${r[1]}</span></div>`).join("");
+    }
+    document.getElementById("chips").onclick=e=>{const b=e.target.closest("[data-f]");if(b){ehFilter=b.dataset.f;ehRender()}};
+    document.getElementById("refreshErrors").onclick=()=>{ehRender();ehDiag()};
+    document.getElementById("clearErrors").onclick=()=>{localStorage.removeItem(EH_KEY);localStorage.removeItem("sk_err_sent");ehRender();toast("✅ Error list cleared")};
+    document.getElementById("copyErrors").onclick=async()=>{
+      const t=ehGet().map(e=>`[${e.time}] ${e.type}${e.code?"/"+e.code:""} x${e.count||1}\n${e.message}\n${e.page||""} ${e.source||""}\n${(e.crumbs||[]).join("\n")}\n${e.stack||""}`).join("\n\n----\n\n");
+      try{await navigator.clipboard.writeText(t||"No errors");toast("✅ Report copied")}catch(e){toast("❌ Could not copy","error")}
+    };
+    document.getElementById("testErr").onclick=async()=>{
+      toast("Sending test alert...");const r=await sendTestError();
+      toast(r&&r.ok?"✅ Telegram par test alert gaya":"❌ Not sent: "+((r&&r.error)||"no response from the server")+" — check ERROR_BOT_TOKEN / ERROR_CHAT_ID in Vercel",r&&r.ok?"ok":"error");
+    };
+    document.getElementById("healBtn").onclick=async()=>{
+      try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)));const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}catch(e){}
+      sessionStorage.removeItem("sk_healed");toast("✅ Cache cleared — reloading");setTimeout(()=>location.reload(),700);
+    };
+    document.addEventListener("DOMContentLoaded",()=>{ehRender();ehDiag()});
+  </script>
+</body>
+</html>

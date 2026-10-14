@@ -1,0 +1,62 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Test Series - SK Education</title><meta name="theme-color" content="#0B0E15"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://testing-5ce76-default-rtdb.firebaseio.com" crossorigin><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"><script src="tg.js"></script><script src="data.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script defer src="config.js"></script><script defer src="nav.js"></script><script defer src="ts.js"></script></head>
+<body><div class="app"><header class="topbar"><div class="brand"><img src="icons/logo-96.png" width="30" height="30" alt="SK"><span id="ttl">Test Series</span></div><button class="icon-btn" onclick="goBack()">←</button></header>
+<main class="content" id="stage"><div class="skel" style="height:140px"></div><div class="skel" style="height:96px;margin-top:12px"></div></main><nav class="bottom-nav"><button type="button" class="nav-item" onclick="nav('index.html')"><span>⌂</span>HOME</button><button type="button" class="nav-item" onclick="nav('my-courses.html')"><span>▣</span>MY COURSES</button><button type="button" class="nav-item active" onclick="nav('test-series.html')"><span>✎</span>TEST SERIES</button><button type="button" class="nav-item" onclick="nav('chat.html')"><span>💬</span>CHAT</button><button type="button" class="nav-item" onclick="nav('profile.html')"><span>●</span>PROFILE</button></nav></div><div id="toast"></div>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+if(!requireApp())return;
+idle(watchBlocked,2000);
+const P=new URLSearchParams(location.search),C=P.get("c"),S=P.get("s"),U=P.get("u"),V=P.get("view"),$=id=>document.getElementById(id),st=$("stage");
+let tests=[];
+const q=encodeURIComponent;
+window.goBack=function(){ if(U)nav("test-series.html?c="+q(C)+"&s="+q(S)); else if(S)nav("test-series.html?c="+q(C)); else if(C||V)nav("test-series.html"); else nav("index.html"); };
+const cnt=(c,s,u)=>tests.filter(t=>t.cls===c&&(!s||t.subject===s)&&(u==null||subOf(c,s,t)===u)).length;
+/* a test belongs to its subcategory, or to "_" (other) when it has none / the subcategory was removed */
+function subOf(c,s,t){const subs=tsSubsOf(c,s);return t.sub&&subs.some(x=>x[0]===t.sub)?t.sub:"_"}
+
+function hub(){
+  const b=tsBest(),ids=Object.keys(b),avg=ids.length?Math.round(ids.reduce((a,k)=>a+b[k].score/b[k].total*100,0)/ids.length):0;
+  st.innerHTML=`<div class="ts-hero rise"><h2>Test Series</h2><p>Chapter-wise practice tests • Leaderboard</p><div class="ts-chips"><div class="ts-chip"><b>${ids.length}</b>Tests taken</div><div class="ts-chip"><b>${avg}%</b>Average</div><div class="ts-chip"><b>${tests.length}</b>Available</div></div><div class="big">🏆</div></div>
+  <div class="section-head"><h2>Choose your series</h2></div><div class="ts-classes">`+
+  Object.keys(TS_CLASSES).map((k,i)=>`<a class="ts-class" style="background:${TS_CLASSES[k].grad};animation-delay:${i*90}ms" href="test-series.html?c=${q(k)}"><div class="n">${TS_CLASSES[k].custom?esc(TS_CLASSES[k].emoji||"📚"):esc(k)+"th"}</div><div><b>${esc(TS_CLASSES[k].label)}</b><small>${esc(TS_CLASSES[k].tag?TS_CLASSES[k].tag+" • ":"")}${cnt(k)} tests</small></div><div class="go">›</div></a>`).join("")+`</div>`+
+  (Object.keys(TS_CLASSES).length?"":stateHtml("No series yet",""))+
+  `<a class="ts-board-btn" href="test-series.html?view=board">${icon("trophy",18)} Overall Leaderboard</a>`;
+}
+function classView(){
+  const c=TS_CLASSES[C];if(!c){hub();return}
+  $("ttl").textContent=c.label;if(!c.subjects.length){st.innerHTML=stateHtml("No subjects yet","");return}
+  st.innerHTML=`<div class="section-head"><h2>Choose a subject</h2></div><div class="ts-subs">`+c.subjects.map((s,i)=>`<a class="ts-sub" style="--c:${s[3]};animation-delay:${i*60}ms" href="test-series.html?c=${q(C)}&s=${q(s[0])}"><div class="em">${s[2]}</div><b>${esc(s[1])}</b><small>${cnt(C,s[0])} tests${(s[4]||[]).length?" • "+s[4].length+" categories":""}</small></a>`).join("")+`</div>`;
+}
+/* subject with subcategories: Hindi -> Poetry / Prose / Grammar */
+function subCats(){
+  const sub=tsSubject(C,S),subs=tsSubsOf(C,S),other=cnt(C,S,"_");
+  $("ttl").textContent=sub[1]+" • "+(TS_CLASSES[C]||{label:""}).label;
+  const tiles=subs.map(x=>[x[0],x[1],cnt(C,S,x[0])]);
+  if(other)tiles.push(["_","Other tests",other]);
+  st.innerHTML=`<div class="section-head"><h2>Choose a category</h2></div><div class="ts-subs">`+tiles.map((x,i)=>`<a class="ts-sub" style="--c:${sub[3]};animation-delay:${i*60}ms" href="test-series.html?c=${q(C)}&s=${q(S)}&u=${q(x[0])}"><div class="em">${sub[2]}</div><b>${esc(x[1])}</b><small>${x[2]} tests</small></a>`).join("")+`</div>`;
+}
+function testList(){
+  const sub=tsSubject(C,S),subs=tsSubsOf(C,S),best=tsBest();
+  let list=tests.filter(t=>t.cls===C&&t.subject===S);
+  let name="";
+  if(subs.length&&U){list=list.filter(t=>subOf(C,S,t)===U);name=U==="_"?"Other tests":tsSubName(C,S,U)}
+  $("ttl").textContent=(name?name+" • ":"")+sub[1]+" • "+(TS_CLASSES[C]||{label:""}).label;
+  st.innerHTML=list.length?list.map((t,i)=>{const b=best[t.id];return `<div class="ts-test" style="--c:${sub[3]};animation-delay:${i*50}ms"><div class="em">${sub[2]}</div><div class="t"><b>${esc(t.chapter)}${b?`<span class="ts-badge">${b.score}/${b.total}</span>`:""}</b><small>${t.count} questions • ${durOf(t,t.count)} min</small></div><a class="ts-start" href="test-play.html?id=${q(t.id)}">${b?"Retake":"Start"}</a></div>`}).join(""):stateHtml("No tests yet","Tests for this section will be added soon.");
+}
+function subjectView(){ if(tsSubsOf(C,S).length&&!U)subCats(); else testList(); }
+function boardView(){
+  $("ttl").textContent="Leaderboard";
+  st.innerHTML='<div class="skel" style="height:200px"></div>';
+  const me=tsUid();
+  const done=snap=>{
+    const rows=[];snap.forEach(c=>{const v=c.val();if(v&&v.points>0)rows.push({uid:c.key,name:v.name||"User",points:v.points,tests:v.tests||0})});
+    rows.sort((a,b)=>b.points-a.points||a.tests-b.tests);
+    st.innerHTML=`<div class="ts-hero rise" style="padding:16px"><h2>Top Performers</h2><p>Total of the best scores across all tests</p><div class="big" style="font-size:44px">👑</div></div>`+lbHtml(rows.slice(0,30).map(r=>({uid:r.uid,name:r.name,main:r.points+" pts",sub:r.tests+" tests"})),me);
+  };
+  testDb.ref("tsUsers").orderByChild("points").limitToLast(30).once("value").then(done).catch(()=>testDb.ref("tsUsers").once("value").then(done).catch(()=>{st.innerHTML=stateHtml("Could not load","Check your internet connection.",retryBtn())}));
+}
+function render(){ if(V==="board")boardView(); else if(C&&S&&TS_CLASSES[C])subjectView(); else if(C)classView(); else hub(); }
+let loaded=false;
+const serP=SKData.testSeries(r=>{tsApplySeries(r);if(loaded&&V!=="board")render()}).then(r=>tsApplySeries(r)).catch(()=>{});
+Promise.race([serP,new Promise(r=>setTimeout(r,2500))]).then(()=>SKData.testMeta(d=>{tests=d;if(loaded&&V!=="board")render()})).then(d=>{tests=d;loaded=true;render()}).catch(()=>{tests=[];loaded=true;render()});
+});
+</script></body></html>
